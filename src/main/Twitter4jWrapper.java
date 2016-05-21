@@ -2,10 +2,13 @@ package main;
 
 import java.util.Properties;
 
+import twitter4j.IDs;
+import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
+import twitter4j.User;
 import twitter4j.conf.ConfigurationBuilder;
 
 public class Twitter4jWrapper {
@@ -41,6 +44,37 @@ public class Twitter4jWrapper {
 		}
 	}
 	
+	public void lookupUsers(String[] usernames){
+        try {
+            ResponseList<User> users = twitter.lookupUsers(usernames);
+            for (User user : users) {
+                    System.out.println("@" + user.getScreenName());
+                    System.out.println("ID " + user.getId());
+                    System.out.println("Name " + user.getName());
+                    System.out.println("FollowerCount " + user.getFollowersCount());    
+                    System.out.println("");
+            }
+            
+        } catch (TwitterException te) {
+            te.printStackTrace();
+            System.out.println("Failed to lookup users: " + te.getMessage());
+            System.exit(-1);
+        }
+		
+	}
 	
+//	public void getFriends(){
+//	      long cursor = -1;
+//	      IDs ids;
+//	      System.out.println("Listing followers's ids.");
+//	      do {
+//	              ids = twitter.getFollowersIDs("username", cursor);
+//	          for (long id : ids.getIDs()) {
+//	              System.out.println(id);
+//	              User user = twitter.showUser(id);
+//	              System.out.println(user.getName());
+//	          }
+//	      } while ((cursor = ids.getNextCursor()) != 0);
+//	}
 
 }

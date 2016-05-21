@@ -10,11 +10,9 @@ public class Main {
 	public static void main(String[] args){
 		Properties config = getConfig();
 		Twitter4jWrapper wrapper = new Twitter4jWrapper(config);
-		wrapper.updateStatus();
+//		wrapper.updateStatus();
+		wrapper.lookupUsers(new String[] {"marteria", "prinzpi23", "YSLPlug"});
 	}
-	
-	
-	
 	
 	
 	public static Properties getConfig() {
