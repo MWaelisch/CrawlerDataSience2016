@@ -44,9 +44,14 @@ public class Twitter4jWrapper {
 		}
 	}
 	
-	public void lookupUsers(String[] usernames){
+	/**
+	 * Possible requests 60/ 15 min
+	 * 
+	 * @param screenNames
+	 */
+	public void lookupUsers(String[] screenNames){
         try {
-            ResponseList<User> users = twitter.lookupUsers(usernames);
+            ResponseList<User> users = twitter.lookupUsers(screenNames);
             for (User user : users) {
                     System.out.println("@" + user.getScreenName());
                     System.out.println("ID " + user.getId());
@@ -58,6 +63,31 @@ public class Twitter4jWrapper {
         } catch (TwitterException te) {
             te.printStackTrace();
             System.out.println("Failed to lookup users: " + te.getMessage());
+            System.exit(-1);
+        }
+		
+	}
+	
+	/**
+	 * Possible Requests 30/ 15min
+	 * 
+	 * @param screenName
+	 */
+	public void getFriendsIDs(String screenName){
+        try {
+            long cursor = -1;
+            IDs ids;
+            do {
+                ids = twitter.getFriendsIDs(screenName, cursor);
+                System.out.println(ids.getIDs().length);
+                for (long id : ids.getIDs()) {
+                    System.out.println(id);
+                }
+            } while ((cursor = ids.getNextCursor()) != 0);
+            System.exit(0);
+        } catch (TwitterException te) {
+            te.printStackTrace();
+            System.out.println("Failed to get friends' ids: " + te.getMessage());
             System.exit(-1);
         }
 		

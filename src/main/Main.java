@@ -11,7 +11,8 @@ public class Main {
 		Properties config = getConfig();
 		Twitter4jWrapper wrapper = new Twitter4jWrapper(config);
 //		wrapper.updateStatus();
-		wrapper.lookupUsers(new String[] {"marteria", "prinzpi23", "YSLPlug"});
+//		wrapper.lookupUsers(new String[] {"marteria", "prinzpi23", "YSLPlug"});
+		wrapper.getFriendsIDs("marteria");
 	}
 	
 	
