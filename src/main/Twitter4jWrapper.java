@@ -1,7 +1,9 @@
 package main;
 
+import java.util.ArrayList;
 import java.util.Properties;
 
+import model.Vip;
 import twitter4j.IDs;
 import twitter4j.ResponseList;
 import twitter4j.Status;
@@ -49,7 +51,9 @@ public class Twitter4jWrapper {
 	 * 
 	 * @param screenNames
 	 */
-	public void lookupUsers(String[] screenNames){
+	public ArrayList<Vip> lookupUsers(String[] screenNames){
+		
+		ArrayList<Vip> vips = new ArrayList<Vip>();
         try {
             ResponseList<User> users = twitter.lookupUsers(screenNames);
             for (User user : users) {
@@ -58,13 +62,22 @@ public class Twitter4jWrapper {
                     System.out.println("Name " + user.getName());
                     System.out.println("FollowerCount " + user.getFollowersCount());    
                     System.out.println("");
-            }
+                    
+                    Vip vip = new Vip();
+                    vip.setId(user.getId());
+                    vip.setAtName(user.getScreenName());
+                    vip.setUserName(user.getName());
+                    vip.setFollowerCount(user.getFollowersCount());
+                    vips.add(vip);
+            }       
+            return vips;
             
         } catch (TwitterException te) {
             te.printStackTrace();
             System.out.println("Failed to lookup users: " + te.getMessage());
             System.exit(-1);
         }
+		return null;
 		
 	}
 	
@@ -73,24 +86,24 @@ public class Twitter4jWrapper {
 	 * 
 	 * @param screenName
 	 */
-	public void getFriendsIDs(String screenName){
+	public long[] getFriendsIDs(String screenName){
         try {
             long cursor = -1;
             IDs ids;
             do {
                 ids = twitter.getFriendsIDs(screenName, cursor);
-                System.out.println(ids.getIDs().length);
-                for (long id : ids.getIDs()) {
-                    System.out.println(id);
-                }
+//                System.out.println(ids.getIDs().length);
+//                for (long id : ids.getIDs()) {
+//                    System.out.println(id);
+//                }
+                return ids.getIDs();
             } while ((cursor = ids.getNextCursor()) != 0);
-            System.exit(0);
         } catch (TwitterException te) {
             te.printStackTrace();
             System.out.println("Failed to get friends' ids: " + te.getMessage());
             System.exit(-1);
         }
-		
+		return null;
 	}
 	
 //	public void getFriends(){
