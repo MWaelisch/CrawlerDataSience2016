@@ -1,6 +1,7 @@
 package main;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import model.Vip;
@@ -16,9 +17,11 @@ import twitter4j.conf.ConfigurationBuilder;
 public class Twitter4jWrapper {
 	
 	private Twitter twitter;
+	private Properties config;
 	
 	public Twitter4jWrapper(Properties config){
 		
+		this.config = config;
 		String apikey = config.getProperty("apikey");
 		String apiSecret = config.getProperty("apisecret");
 		String accessToken = config.getProperty("accessToken");
@@ -33,6 +36,56 @@ public class Twitter4jWrapper {
 		TwitterFactory tf = new TwitterFactory(cb.build());
 		twitter = tf.getInstance();
         
+	}
+	
+	
+	public void crawlVips(ArrayList<String> vipNames)
+	{
+		List<List<String>> parts = prepareVipLists(vipNames, 100);
+		
+		Database database = new Database();
+		
+		for(List<String> part : parts){
+			
+			String[] vipnamesArr = new String[part.size()];
+			vipnamesArr = part.toArray(vipnamesArr);
+			
+			System.out.println("Crawle Userdaten der Vips");
+			ArrayList<Vip> vips = this.lookupUsers(vipnamesArr);
+			System.out.println("Userdaten gecrawled");
+			
+			System.out.println("Crawle Friends der Vips");
+			for(Vip vip : vips){
+				System.out.println("Crawle Friends von " + vip.getAtName());
+				long[] friends = this.getFriendsIDs(vip.getAtName());
+				vip.setFriends(friends);
+				try {
+					Thread.sleep(61000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			System.out.println("Friends gecrawled");
+			
+			for(Vip vip : vips){
+				database.addVIP(vip);
+			}
+			
+		}
+		System.out.println("Finished");
+	}
+	
+	
+	public <T> List<List<T>> prepareVipLists(List<T> list, final int L) {
+	    List<List<T>> parts = new ArrayList<List<T>>();
+	    final int N = list.size();
+	    for (int i = 0; i < N; i += L) {
+	        parts.add(new ArrayList<T>(
+	            list.subList(i, Math.min(N, i + L)))
+	        );
+	    }
+	    return parts;
 	}
 	
 	public void updateStatus(){
@@ -82,7 +135,7 @@ public class Twitter4jWrapper {
 	}
 	
 	/**
-	 * Possible Requests 30/ 15min
+	 * Possible Requests 15/ 15min
 	 * 
 	 * @param screenName
 	 */

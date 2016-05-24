@@ -6,24 +6,17 @@ import java.util.ArrayList;
 import java.util.Properties;
 
 import model.Vip;
+import util.*;
 
 public class Main {
 	
 	public static void main(String[] args){
 		Properties config = getConfig();
 		Twitter4jWrapper wrapper = new Twitter4jWrapper(config);
-//		wrapper.updateStatus();
-		ArrayList<Vip> vips = wrapper.lookupUsers(new String[] {"marteria", "prinzpi23", "YSLPlug"});
-		for(Vip vip : vips){
-			long[] friends = wrapper.getFriendsIDs("marteria");
-			vip.setFriends(friends);
-		}
-		System.out.println("Finished");
-		
-		Database database = new Database();
-		for(Vip vip : vips){
-			database.addVIP(vip);
-		}
+		CSVParser parser = new CSVParser(config);
+		ArrayList<String> vipNames = parser.parseVips();
+		System.out.println("Vip Liste erfolgreich erstellt");
+		wrapper.crawlVips(vipNames);
 		
 	}
 	
