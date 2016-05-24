@@ -6,6 +6,7 @@ import java.util.Properties;
 
 import model.Vip;
 import twitter4j.IDs;
+import twitter4j.Paging;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.Twitter;
@@ -56,9 +57,10 @@ public class Twitter4jWrapper {
 			
 			System.out.println("Crawle Friends der Vips");
 			for(Vip vip : vips){
-				System.out.println("Crawle Friends von " + vip.getAtName());
-				long[] friends = this.getFriendsIDs(vip.getAtName());
+				System.out.println("Crawle Friends von " + vip.getScreenName());
+				long[] friends = this.getFriendsIDs(vip.getScreenName());
 				vip.setFriends(friends);
+				database.addVIP(vip);
 				try {
 					Thread.sleep(61000);
 				} catch (InterruptedException e) {
@@ -67,10 +69,6 @@ public class Twitter4jWrapper {
 				}
 			}
 			System.out.println("Friends gecrawled");
-			
-			for(Vip vip : vips){
-				database.addVIP(vip);
-			}
 			
 		}
 		System.out.println("Finished");
@@ -118,7 +116,7 @@ public class Twitter4jWrapper {
                     
                     Vip vip = new Vip();
                     vip.setId(user.getId());
-                    vip.setAtName(user.getScreenName());
+                    vip.setScreenName(user.getScreenName());
                     vip.setUserName(user.getName());
                     vip.setFollowerCount(user.getFollowersCount());
                     vips.add(vip);
@@ -159,18 +157,29 @@ public class Twitter4jWrapper {
 		return null;
 	}
 	
-//	public void getFriends(){
-//	      long cursor = -1;
-//	      IDs ids;
-//	      System.out.println("Listing followers's ids.");
-//	      do {
-//	              ids = twitter.getFollowersIDs("username", cursor);
-//	          for (long id : ids.getIDs()) {
-//	              System.out.println(id);
-//	              User user = twitter.showUser(id);
-//	              System.out.println(user.getName());
-//	          }
-//	      } while ((cursor = ids.getNextCursor()) != 0);
-//	}
+	public void crawlVipTweets(){
+        try {
+            List<Status> statuses = null;
+            String user = "marteria";
+            Paging page = new Paging (1, 100);//page number, number per page
+            for(int i = 1 ; i< 5;i++){
+            	page.setPage(i);
+            	if(i== 1){
+            		statuses = twitter.getUserTimeline(user,page);
+            	}else{
+            		statuses.addAll(twitter.getUserTimeline(user,page));
+            	}
+            }
+            
+            System.out.println("Showing @" + user + "'s user timeline.");
+            for (Status status : statuses) {
+                System.out.println("@" + status.getUser().getScreenName() + " - " + status.getText());
+            }
+        } catch (TwitterException te) {
+            te.printStackTrace();
+            System.out.println("Failed to get timeline: " + te.getMessage());
+            System.exit(-1);
+        }
+	}
 
 }

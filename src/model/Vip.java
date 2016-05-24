@@ -3,7 +3,7 @@ package model;
 public class Vip {
 	
 	private long id;
-	private String atName;
+	private String screenName;
 	private String UserName;
 	private int followerCount;
 	private long[] friends;
@@ -18,12 +18,12 @@ public class Vip {
 		this.id = id;
 	}
 
-	public String getAtName() {
-		return atName;
+	public String getScreenName() {
+		return screenName;
 	}
 
-	public void setAtName(String atName) {
-		this.atName = atName;
+	public void setScreenName(String screenName) {
+		this.screenName = screenName;
 	}
 
 	public String getUserName() {

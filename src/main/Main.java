@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Properties;
 
-import model.Vip;
 import util.*;
 
 public class Main {
@@ -17,6 +16,7 @@ public class Main {
 		ArrayList<String> vipNames = parser.parseVips();
 		System.out.println("Vip Liste erfolgreich erstellt");
 		wrapper.crawlVips(vipNames);
+//		wrapper.crawlVipTweets();
 		
 	}
 	

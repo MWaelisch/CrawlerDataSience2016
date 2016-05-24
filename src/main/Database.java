@@ -47,14 +47,14 @@ public class Database {
 		PreparedStatement preparedStatement = null;
 
 		String insertTableSQL = "INSERT INTO vip"
-				+ "(ID, AtName, UserName, FollowerCount, Friends) VALUES"
+				+ "(id, screenName, userName, followerCount, friends) VALUES"
 				+ "(?,?,?,?,?)";
 
 		try {
 			preparedStatement = conn.prepareStatement(insertTableSQL);
 
 			preparedStatement.setLong(1, vip.getId());
-			preparedStatement.setString(2, vip.getAtName());
+			preparedStatement.setString(2, vip.getScreenName());
 			preparedStatement.setString(3, vip.getUserName());
 			preparedStatement.setInt(4, vip.getFollowerCount());
 			preparedStatement.setString(5, vip.getFriendsAsString());
