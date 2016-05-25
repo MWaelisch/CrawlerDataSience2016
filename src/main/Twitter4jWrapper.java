@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Properties;
 
 import model.Vip;
+import model.VipTweet;
 import twitter4j.IDs;
 import twitter4j.Paging;
 import twitter4j.ResponseList;
@@ -169,13 +170,27 @@ public class Twitter4jWrapper {
             	}else{
             		statuses.addAll(twitter.getUserTimeline(user,page));
             	}
+            	Thread.sleep(3000);
             }
             
-            System.out.println("Showing @" + user + "'s user timeline.");
-            for (Status status : statuses) {
-                System.out.println("@" + status.getUser().getScreenName() + " - " + status.getText());
-            }
-        } catch (TwitterException te) {
+//            System.out.println("Showing @" + user + "'s user timeline.");
+//            for (Status status : statuses) {
+//                System.out.println("@" + status.getUser().getScreenName() + " - " + status.getText());
+//            }
+            
+            List<VipTweet> vipTweets = new ArrayList<VipTweet>();
+          for (Status status : statuses) {
+        	  VipTweet vipTweet = new VipTweet();
+        	  vipTweet.setIdStr(status.getId()+"");
+        	  vipTweet.setAuthorId(status.getUser().getId());
+        	  vipTweet.setAuthorName(status.getUser().getScreenName());
+        	  vipTweet.setInReplyTo(status.getInReplyToUserId());
+//        	  vipTweet.setMentions(status.getUserMentionEntities()[0]);
+        	  vipTweet.setText(status.getText());
+        	  
+          }
+            
+        } catch (TwitterException | InterruptedException te) {
             te.printStackTrace();
             System.out.println("Failed to get timeline: " + te.getMessage());
             System.exit(-1);

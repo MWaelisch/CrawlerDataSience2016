@@ -2,20 +2,20 @@ package model;
 
 public class VipTweet {
 	
-	private int authorId;
+	private long authorId;
 	private String authorName;
 	private String idStr;
-	private int inReplyTo;
-	private int[] mentions;
-	private int retweetOrigin;
+	private long inReplyTo;
+	private long[] mentions;
+	private long retweetOrigin;
 	private String text;
 	
 	
 	
-	public int getAuthorId() {
+	public long getAuthorId() {
 		return authorId;
 	}
-	public void setAuthorId(int authorId) {
+	public void setAuthorId(long authorId) {
 		this.authorId = authorId;
 	}
 	public String getAuthorName() {
@@ -30,19 +30,19 @@ public class VipTweet {
 	public void setIdStr(String idStr) {
 		this.idStr = idStr;
 	}
-	public int getInReplyTo() {
+	public long getInReplyTo() {
 		return inReplyTo;
 	}
-	public void setInReplyTo(int inReplyTo) {
+	public void setInReplyTo(long inReplyTo) {
 		this.inReplyTo = inReplyTo;
 	}
-	public int[] getMentions() {
+	public long[] getMentions() {
 		return mentions;
 	}
-	public void setMentions(int[] mentions) {
+	public void setMentions(long[] mentions) {
 		this.mentions = mentions;
 	}
-	public int getRetweetOrigin() {
+	public long getRetweetOrigin() {
 		return retweetOrigin;
 	}
 	public void setRetweetOrigin(int retweetOrigin) {
