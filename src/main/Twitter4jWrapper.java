@@ -14,6 +14,7 @@ import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
 import twitter4j.User;
+import twitter4j.UserMentionEntity;
 import twitter4j.conf.ConfigurationBuilder;
 
 public class Twitter4jWrapper {
@@ -61,17 +62,19 @@ public class Twitter4jWrapper {
 				System.out.println("Crawle Friends von " + vip.getScreenName());
 				long[] friends = this.getFriendsIDs(vip.getScreenName());
 				vip.setFriends(friends);
-				database.addVIP(vip);
+				database.addVip(vip);
 				try {
 					Thread.sleep(61000);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
+					database.closeConnection();
 				}
 			}
 			System.out.println("Friends gecrawled");
 			
 		}
+		database.closeConnection();
 		System.out.println("Finished");
 	}
 	
@@ -121,6 +124,7 @@ public class Twitter4jWrapper {
                     vip.setUserName(user.getName());
                     vip.setFollowerCount(user.getFollowersCount());
                     vips.add(vip);
+                    
             }       
             return vips;
             
@@ -158,7 +162,7 @@ public class Twitter4jWrapper {
 		return null;
 	}
 	
-	public void crawlVipTweets(){
+	public void crawlVipTweets(List<String> vips){
         try {
             List<Status> statuses = null;
             String user = "marteria";
@@ -173,21 +177,26 @@ public class Twitter4jWrapper {
             	Thread.sleep(3000);
             }
             
-//            System.out.println("Showing @" + user + "'s user timeline.");
-//            for (Status status : statuses) {
-//                System.out.println("@" + status.getUser().getScreenName() + " - " + status.getText());
-//            }
-            
-            List<VipTweet> vipTweets = new ArrayList<VipTweet>();
+    		Database database = new Database();
           for (Status status : statuses) {
         	  VipTweet vipTweet = new VipTweet();
         	  vipTweet.setIdStr(status.getId()+"");
         	  vipTweet.setAuthorId(status.getUser().getId());
         	  vipTweet.setAuthorName(status.getUser().getScreenName());
         	  vipTweet.setInReplyTo(status.getInReplyToUserId());
-//        	  vipTweet.setMentions(status.getUserMentionEntities()[0]);
-        	  vipTweet.setText(status.getText());
         	  
+        	  UserMentionEntity[] userMentionEntities = status.getUserMentionEntities(); 
+        	  long[] userMentions = new long[userMentionEntities.length];
+        	  for(int i = 0; i< userMentionEntities.length;i++){
+        		  long userMention =  userMentionEntities[i].getId();
+        		  userMentions[i] = userMention;
+        	  }
+        	  vipTweet.setMentions(userMentions);
+        	  vipTweet.setText(status.getText());
+        	  vipTweet.setRetweetOrigin(status.getRetweetedStatus().getUser().getId());
+        	  System.out.println("Retweeted Text" + status.getRetweetedStatus().getText());
+        	  System.out.println("Origin Text " + status.getRetweetedStatus().getText());
+        	  database.addVipTweet(vipTweet);
           }
             
         } catch (TwitterException | InterruptedException te) {

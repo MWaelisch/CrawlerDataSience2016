@@ -15,7 +15,7 @@ public class Main {
 		CSVParser parser = new CSVParser(config);
 		ArrayList<String> vipNames = parser.parseVips();
 		System.out.println("Vip Liste erfolgreich erstellt");
-		wrapper.crawlVips(vipNames);
+//		wrapper.crawlVips(vipNames);
 //		wrapper.crawlVipTweets();
 		
 	}

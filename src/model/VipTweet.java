@@ -9,7 +9,7 @@ public class VipTweet {
 	private long[] mentions;
 	private long retweetOrigin;
 	private String text;
-	
+	private int generatedId;
 	
 	
 	public long getAuthorId() {
@@ -45,7 +45,7 @@ public class VipTweet {
 	public long getRetweetOrigin() {
 		return retweetOrigin;
 	}
-	public void setRetweetOrigin(int retweetOrigin) {
+	public void setRetweetOrigin(long retweetOrigin) {
 		this.retweetOrigin = retweetOrigin;
 	}
 	public String getText() {
@@ -54,7 +54,11 @@ public class VipTweet {
 	public void setText(String text) {
 		this.text = text;
 	}
-	
-	
+	public int getGeneratedId() {
+		return generatedId;
+	}
+	public void setGeneratedId(int generatedId) {
+		this.generatedId = generatedId;
+	}	
 
 }

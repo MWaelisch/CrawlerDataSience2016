@@ -48,16 +48,6 @@ public class Vip {
 
 	public void setFriends(long[] friends) {
 		this.friends = friends;
-	}
-	
-	public String getFriendsAsString(){
-		String friendlist = "";
-		for(long id : this.friends){
-			friendlist+= id + ";";
-		}
-		return friendlist;
-	}
-	
-	
+	}	
 
 }

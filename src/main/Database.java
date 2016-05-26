@@ -6,6 +6,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Properties;
+
 import model.*;
 
 public class Database {
@@ -18,7 +20,9 @@ public class Database {
         try {
 			Class.forName(sDriverName);
 			// create a database connection
-			conn = DriverManager.getConnection("jdbc:sqlite:resources/twitterData.db");
+			Properties properties = new Properties();
+			properties.setProperty("PRAGMA foreign_keys", "ON");
+			conn = DriverManager.getConnection("jdbc:sqlite:resources/twitterData.db",properties);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -39,16 +43,22 @@ public class Database {
 		}
 	}
 		
+		
 	/**
 	 * 
 	 * @param vip
 	 */
-	public void addVIP(Vip vip){
+	public void addVip(Vip vip){
+		addVipUserdata(vip);
+		addVipFriends(vip);
+	}
+	
+	private void addVipUserdata(Vip vip){
 		PreparedStatement preparedStatement = null;
 
 		String insertTableSQL = "INSERT INTO vip"
-				+ "(id, screenName, userName, followerCount, friends) VALUES"
-				+ "(?,?,?,?,?)";
+				+ "(id, screenName, userName, followerCount) VALUES"
+				+ "(?,?,?,?)";
 
 		try {
 			preparedStatement = conn.prepareStatement(insertTableSQL);
@@ -57,7 +67,6 @@ public class Database {
 			preparedStatement.setString(2, vip.getScreenName());
 			preparedStatement.setString(3, vip.getUserName());
 			preparedStatement.setInt(4, vip.getFollowerCount());
-			preparedStatement.setString(5, vip.getFriendsAsString());
 
 			// execute insert SQL statement
 			preparedStatement.executeUpdate();
@@ -79,5 +88,136 @@ public class Database {
 			}
 		}
 	}
+	
+	private void addVipFriends(Vip vip){
+		PreparedStatement preparedStatement = null;
+
+		String insertTableSQL = "INSERT INTO vipFriends"
+				+ "(vip,friend) VALUES"
+				+ "(?,?)";
+
+		try {
+			preparedStatement = conn.prepareStatement(insertTableSQL);
+			
+			for(long friend : vip.getFriends()){
+				preparedStatement.setLong(1, vip.getId());
+				preparedStatement.setLong(2, friend);
+				// execute insert SQL statement
+				preparedStatement.executeUpdate();
+				preparedStatement.clearParameters();
+			}
+
+		}catch (SQLException e) {
+
+			System.out.println(e.getMessage());
+
+		} finally {
+
+			if (preparedStatement != null) {
+				try {
+					preparedStatement.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		
+	}
+	
+	public void addVipTweet(VipTweet vipTweet){
+		addVipTweetData(vipTweet);
+		if(vipTweet.getGeneratedId() != 0){
+			addVipTweetMentions(vipTweet);
+		}else{
+			try {
+				throw new Exception("VIP Tweet database Insert returned 0");
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		
+	}
+	
+	private void addVipTweetData(VipTweet vipTweet){
+		PreparedStatement preparedStatement = null;
+
+		String insertTableSQL = "INSERT INTO vipTweets"
+				+ "(authorId, authorName, idStr, inReplyTo, retweetOrigin,text) VALUES"
+				+ "(?,?,?,?,?,?)";
+
+		try {
+			preparedStatement = conn.prepareStatement(insertTableSQL,Statement.RETURN_GENERATED_KEYS);
+
+			
+			preparedStatement.setLong(1, vipTweet.getAuthorId());
+			preparedStatement.setString(2, vipTweet.getAuthorName());
+			preparedStatement.setString(3, vipTweet.getIdStr());
+			preparedStatement.setLong(4, vipTweet.getInReplyTo());
+			preparedStatement.setLong(5, vipTweet.getRetweetOrigin());
+			preparedStatement.setString(5, vipTweet.getText());
+
+			// execute insert SQL statement
+			preparedStatement.executeUpdate();
+
+			ResultSet rs = preparedStatement.getGeneratedKeys();
+			if (rs.next()) {
+			  int generatedId = rs.getInt(1);
+			  vipTweet.setGeneratedId(generatedId);
+			}
+		}catch (SQLException e) {
+
+			System.out.println(e.getMessage());
+
+		} finally {
+
+			if (preparedStatement != null) {
+				try {
+					preparedStatement.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	private void addVipTweetMentions(VipTweet vipTweet){
+		PreparedStatement preparedStatement = null;
+
+		String insertTableSQL = "INSERT INTO vipTweetMentions"
+				+ "(vipTweetId, mention) VALUES"
+				+ "(?,?)";
+
+		try {
+			preparedStatement = conn.prepareStatement(insertTableSQL);
+			for(long mention : vipTweet.getMentions()){
+				preparedStatement.setInt(1,vipTweet.getGeneratedId());
+				preparedStatement.setLong(2, mention);
+				// execute insert SQL statement
+				preparedStatement.executeUpdate();
+				preparedStatement.clearParameters();
+			}
+		}catch (SQLException e) {
+
+			System.out.println(e.getMessage());
+
+		} finally {
+
+			if (preparedStatement != null) {
+				try {
+					preparedStatement.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		
+	}
+	
 
 }
