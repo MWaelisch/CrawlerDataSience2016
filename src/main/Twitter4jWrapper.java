@@ -27,13 +27,17 @@ public class Twitter4jWrapper {
 	private Twitter twitter;
 	private Properties config;
 	
-	public Twitter4jWrapper(Properties config){
+	private Database database;
+	
+	public Twitter4jWrapper(Properties config, Database database){
 		
 		this.config = config;
 		String apikey = config.getProperty("apikey");
 		String apiSecret = config.getProperty("apisecret");
 		String accessToken = config.getProperty("accessToken");
 		String accessTokenSecret = config.getProperty("accessTokenSecret");
+		
+		this.database = database;
 		
 		ConfigurationBuilder cb = new ConfigurationBuilder();
 		cb.setDebugEnabled(true)
@@ -50,7 +54,7 @@ public class Twitter4jWrapper {
 	{
 		List<List<String>> parts = prepareVipLists(vipNames, 100);
 		
-		Database database = new Database();
+	//	Database database = new Database();
 		
 		for(List<String> part : parts){
 			
@@ -73,13 +77,13 @@ public class Twitter4jWrapper {
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-					database.closeConnection();
+	//				database.closeConnection();
 				}
 			}
 			System.out.println("Friends gecrawled");
 			
 		}
-		database.closeConnection();
+	//	database.closeConnection();
 		System.out.println("Finished");
 	}
 	
@@ -184,7 +188,7 @@ public class Twitter4jWrapper {
 					Thread.sleep(3000);
 				}
 
-				Database database = new Database();
+	//			Database database = new Database();
 				for (Status status : statuses) {
 					VipTweet vipTweet = new VipTweet();
 					vipTweet.setIdStr(status.getId() + "");
@@ -214,6 +218,7 @@ public class Twitter4jWrapper {
 //					}
 					database.addVipTweet(vipTweet);
 				}
+				//	database.closeConnection();
 			}
 
 		} catch (TwitterException | InterruptedException te) {
@@ -230,22 +235,18 @@ public class Twitter4jWrapper {
 		//debug 5
 		List<String[]> cut = vipNickNames.subList(0, 5);
 		ArrayList<PlebTweet> pt = new ArrayList<PlebTweet>();
-		Database database = new Database();
+//		Database database = new Database();
 		
 		//debug
 //		database.executeQuery("SELECT * FROM PlebTweets");
+//		database.closeConnection();
 //		System.exit(0);
 		
 		for(String[] vipname : cut){
 			String q = "";
-			for(int i = 0; i<vipname.length; i++){
-				String v = vipname[i];
-				if(i<vipname.length-1){
-					q += v + " OR ";
-				}else{
-					q += v;
-				}
-			}
+			for(int i = 0; i<vipname.length-1; i++)
+				q += vipname[i] + " OR ";
+			q += vipname[vipname.length-1];
 			//debug
 			System.out.println("### vipname-query: " + q);
 			//meh ([1])
@@ -258,14 +259,7 @@ public class Twitter4jWrapper {
 		for(PlebTweet p : pt){
 			database.addPlebTweet(p);	
 		}
-//			
-//		try {
-//			//2000 for 450 requests / 15 min
-//			Thread.sleep(5000);
-//		} catch (InterruptedException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+		
 		System.out.println("Finished search for mentions of VIPs");
 		
 		System.out.println("Start crawling PlebFriends");
@@ -275,7 +269,9 @@ public class Twitter4jWrapper {
 			crawlPlebFriends(p);
 
 			if(--toSleep == 1){
-		   		try {
+				//debug
+				break;
+		   		/*try {
 		   			System.out.println("Asleep for 15 minutes...");
 		  			//15 requests / 15 min
 		   			Thread.sleep(900000);
@@ -283,11 +279,13 @@ public class Twitter4jWrapper {
 		   			// TODO Auto-generated catch block
 		  			e.printStackTrace();
 		  		}
+		  		toSleep = 15;*/
 			}
 		}
 		System.out.println("Finished crawling PlebFriends");
 		//debug
 		//database.executeQuery("SELECT * FROM plebTweets;");
+	//	database.closeConnection();
 	}
 	
 	/**
@@ -300,39 +298,42 @@ public class Twitter4jWrapper {
 	private ArrayList<PlebTweet> searchTweet(String q, String vipAtName, ArrayList<PlebTweet> pt, Database database){
 		try {
 			   Query query = new Query(q);
-			   query.setCount(100);
 	           QueryResult result;
+               int count = 0;
 	           do {
 	               result = twitter.search(query);
 	               List<Status> tweets = result.getTweets();
 	               	//debug
 	               	//System.out.println("tweets: " + tweets.toString());
 	               for (Status tweet : tweets) {
-	                	PlebTweet plebTweet = new PlebTweet();
-	                	PlebTweetMention plebTweetMention = new PlebTweetMention();
-	                	
-	                	plebTweetMention.setMention((int) database.getVipID(vipAtName));
-	                	
-	                	//auto-inc
-		            	//plebTweet.setId(tweet.getId());
-		            	plebTweet.setAuthorId(tweet.getUser().getId());
-		            	plebTweet.setIdStr(String.valueOf(tweet.getId()));
-		            	plebTweet.setTweet(tweet.getText());
-		            	plebTweet.setSentiment(0);
-		            	
-		            	plebTweet.setScreenName(tweet.getUser().getScreenName());
-		            	
-		            	pt.add(plebTweet);
-	                }
+	            	   count++;
+	            	   if(!tweet.isRetweet()){
+		                	PlebTweet plebTweet = new PlebTweet();
+		                	PlebTweetMention plebTweetMention = new PlebTweetMention();
+		                	
+		                	plebTweetMention.setMention((int) database.getVipID(vipAtName));
+		                	
+		                	//auto-inc ID
+			            	plebTweet.setAuthorId(tweet.getUser().getId());
+			            	plebTweet.setIdStr(String.valueOf(tweet.getId()));
+			            	plebTweet.setTweet(tweet.getText());
+			            	plebTweet.setSentiment(0);
+			            	
+			            	plebTweet.setScreenName(tweet.getUser().getScreenName());
+			            	
+			            	pt.add(plebTweet);
+	            	   }
+	               }
 	               
-					try {
+	               try {
 						//180 bzw 450 requests / 15 min
 						Thread.sleep(500);
-					} catch (InterruptedException e) {
+	               } catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
-					}
-	            } while ((query = result.nextQuery()) != null);
+	               }
+	           } while ((query = result.nextQuery()) != null);
+	           System.out.println("Number of tweets: " + count);
 	       } catch (TwitterException te) {
 	            te.printStackTrace();
 	            System.out.println("Failed to search tweets: " + te.getMessage());
@@ -342,7 +343,7 @@ public class Twitter4jWrapper {
 	}
 	
 	public void crawlPlebFriends(PlebTweet p){
-		Database database = new Database();
+	//	Database database = new Database();
 		
 		long[] friendList = this.getFriendsIDs(p.getScreenName());
     	for(long friend : friendList){
@@ -353,6 +354,7 @@ public class Twitter4jWrapper {
            		database.addPlebFriend(plebFriend);
     		}
     	}
+//		database.closeConnection();
 	}
 
 }

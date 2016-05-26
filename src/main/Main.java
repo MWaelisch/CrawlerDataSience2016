@@ -11,7 +11,8 @@ public class Main {
 	
 	public static void main(String[] args){
 		Properties config = getConfig();
-		Twitter4jWrapper wrapper = new Twitter4jWrapper(config);
+		Database database = new Database();
+		Twitter4jWrapper wrapper = new Twitter4jWrapper(config, database);
 		CSVParser parser = new CSVParser(config);
 		ArrayList<String[]> vipNickNames = parser.parseVipNickNames();
 		ArrayList<String> vipNames = parser.getVipNames(vipNickNames);
@@ -19,6 +20,8 @@ public class Main {
 //		wrapper.crawlVips(vipNames);
 //		wrapper.crawlVipTweets(vipNames);
 		wrapper.searchTweets(vipNickNames);
+		
+		database.closeConnection();
 	}
 	
 	public static Properties getConfig() {
