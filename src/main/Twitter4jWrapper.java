@@ -26,7 +26,6 @@ public class Twitter4jWrapper {
 	
 	private Twitter twitter;
 	private Properties config;
-	private Database database;
 	
 	public Twitter4jWrapper(Properties config){
 		
@@ -44,8 +43,6 @@ public class Twitter4jWrapper {
 		  .setOAuthAccessTokenSecret(accessTokenSecret);
 		TwitterFactory tf = new TwitterFactory(cb.build());
 		twitter = tf.getInstance();
-
-		database = new Database();
 	}
 	
 	
@@ -235,6 +232,10 @@ public class Twitter4jWrapper {
 		ArrayList<PlebTweet> pt = new ArrayList<PlebTweet>();
 		Database database = new Database();
 		
+		//debug
+//		database.executeQuery("SELECT * FROM PlebTweets");
+//		System.exit(0);
+		
 		for(String[] vipname : cut){
 			String q = "";
 			for(int i = 0; i<vipname.length; i++){
@@ -252,20 +253,10 @@ public class Twitter4jWrapper {
 			//debug
        		//System.out.println("### found for query " + q);
 		}
-			
-		int toSleep = 180; //450
+
+		
 		for(PlebTweet p : pt){
 			database.addPlebTweet(p);	
-			if(--toSleep == 0){
-				try {
-					//2000 for 450 requests / 15 min
-					Thread.sleep(5000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				toSleep = 180; //450
-			}
 		}
 //			
 //		try {
@@ -278,12 +269,12 @@ public class Twitter4jWrapper {
 		System.out.println("Finished search for mentions of VIPs");
 		
 		System.out.println("Start crawling PlebFriends");
-		toSleep = 15;
+		int toSleep = 15;
 		//crawlPlebFriends(pt.get(0));
 		for(PlebTweet p : pt){
 			crawlPlebFriends(p);
 
-			if(--toSleep == 0){
+			if(--toSleep == 1){
 		   		try {
 		   			System.out.println("Asleep for 15 minutes...");
 		  			//15 requests / 15 min
@@ -298,14 +289,6 @@ public class Twitter4jWrapper {
 		//debug
 		//database.executeQuery("SELECT * FROM plebTweets;");
 	}
-	
-//	private PlebTweet findPTinList(long id, ArrayList<PlebTweet> plebTweets){
-//		for(PlebTweet pt : plebTweets){
-//			if(id == pt.getId())
-//				return pt;
-//		}
-//		return null;
-//	}
 	
 	/**
 	 * Possible requests 180/ 15 min
@@ -341,6 +324,14 @@ public class Twitter4jWrapper {
 		            	
 		            	pt.add(plebTweet);
 	                }
+	               
+					try {
+						//180 bzw 450 requests / 15 min
+						Thread.sleep(500);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 	            } while ((query = result.nextQuery()) != null);
 	       } catch (TwitterException te) {
 	            te.printStackTrace();
@@ -351,6 +342,8 @@ public class Twitter4jWrapper {
 	}
 	
 	public void crawlPlebFriends(PlebTweet p){
+		Database database = new Database();
+		
 		long[] friendList = this.getFriendsIDs(p.getScreenName());
     	for(long friend : friendList){
     		if(database.isIDInDB(friend, "id", "vip")){
