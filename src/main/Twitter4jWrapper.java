@@ -4,10 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import model.PlebFriend;
+import model.PlebTweet;
+import model.PlebTweetMention;
 import model.Vip;
 import model.VipTweet;
 import twitter4j.IDs;
 import twitter4j.Paging;
+import twitter4j.Query;
+import twitter4j.QueryResult;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.Twitter;
@@ -21,6 +26,7 @@ public class Twitter4jWrapper {
 	
 	private Twitter twitter;
 	private Properties config;
+	private Database database;
 	
 	public Twitter4jWrapper(Properties config){
 		
@@ -38,7 +44,8 @@ public class Twitter4jWrapper {
 		  .setOAuthAccessTokenSecret(accessTokenSecret);
 		TwitterFactory tf = new TwitterFactory(cb.build());
 		twitter = tf.getInstance();
-        
+
+		database = new Database();
 	}
 	
 	
@@ -214,6 +221,136 @@ public class Twitter4jWrapper {
 			System.exit(-1);
 		}
 
+	}
+	
+
+	public void searchTweets(ArrayList<String[]> vipNickNames){
+		System.out.println("Search for mentions of VIPs");
+		//debug 5
+		List<String[]> cut = vipNickNames.subList(0, 5);
+		ArrayList<PlebTweet> pt = new ArrayList<PlebTweet>();
+		Database database = new Database();
+		
+		for(String[] vipname : cut){
+			String q = "";
+			for(String v : vipname){
+				q += v + " ";
+			}
+			//debug
+			System.out.println("### vipname-query: " + q);
+			//meh ([1])
+        	pt = searchTweet(q, vipname[1], pt, database);
+			//debug
+       		//System.out.println("### found for query " + q);
+		}
+			
+		int toSleep = 180; //450
+		for(PlebTweet p : pt){
+			database.addPlebTweet(p);	
+			if(--toSleep == 0){
+				try {
+					//2000 for 450 requests / 15 min
+					Thread.sleep(5000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				toSleep = 180; //450
+			}
+		}
+//			
+//		try {
+//			//2000 for 450 requests / 15 min
+//			Thread.sleep(5000);
+//		} catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+		System.out.println("Finished search for mentions of VIPs");
+		
+		System.out.println("Start crawling PlebFriends");
+		toSleep = 15;
+		//crawlPlebFriends(pt.get(0));
+		for(PlebTweet p : pt){
+			crawlPlebFriends(p);
+
+			if(--toSleep == 0){
+		   		try {
+		   			System.out.println("Asleep for 15 minutes...");
+		  			//15 requests / 15 min
+		   			Thread.sleep(900000);
+		   		} catch (InterruptedException e) {
+		   			// TODO Auto-generated catch block
+		  			e.printStackTrace();
+		  		}
+			}
+		}
+		System.out.println("Finished crawling PlebFriends");
+		//debug
+		//database.executeQuery("SELECT * FROM plebTweets;");
+	}
+	
+//	private PlebTweet findPTinList(long id, ArrayList<PlebTweet> plebTweets){
+//		for(PlebTweet pt : plebTweets){
+//			if(id == pt.getId())
+//				return pt;
+//		}
+//		return null;
+//	}
+	
+	/**
+	 * Possible requests 180/ 15 min
+	 * 	                 450/ 15 min app-only
+	 * 
+	 * @param searchTweets
+	 * @return 
+	 */
+	private ArrayList<PlebTweet> searchTweet(String q, String vipAtName, ArrayList<PlebTweet> pt, Database database){
+		try {
+			   Query query = new Query(q);
+			   query.setCount(100);
+	           QueryResult result;
+	           do {
+	               result = twitter.search(query);
+	               List<Status> tweets = result.getTweets();
+	               	//debug
+	               	//System.out.println("tweets: " + tweets.toString());
+	               for (Status tweet : tweets) {
+	                	PlebTweet plebTweet = new PlebTweet();
+	                	PlebTweetMention plebTweetMention = new PlebTweetMention();
+	                	
+	                	plebTweetMention.setMention((int) database.getVipID(vipAtName));
+	                	
+	                	//auto-inc
+		            	//plebTweet.setId(tweet.getId());
+		            	plebTweet.setAuthorId(tweet.getUser().getId());
+		            	plebTweet.setIdStr(String.valueOf(tweet.getId()));
+		            	plebTweet.setTweet(tweet.getText());
+		            	plebTweet.setSentiment(0);
+		            	
+		            	plebTweet.setScreenName(tweet.getUser().getScreenName());
+		            	
+		            	pt.add(plebTweet);
+	                }
+	            } while ((query = result.nextQuery()) != null);
+	       } catch (TwitterException te) {
+	            te.printStackTrace();
+	            System.out.println("Failed to search tweets: " + te.getMessage());
+	            System.exit(-1);
+	       }
+		return pt;
+	}
+	
+	public void crawlPlebFriends(PlebTweet p){
+		long[] friendList = this.getFriendsIDs(p.getScreenName());
+    	for(long friend : friendList){
+    		if(database.isIDInDB(friend, "id", "vip")){
+            	PlebFriend plebFriend = new PlebFriend();
+            	plebFriend.setId(p.getAuthorId());
+        		plebFriend.setFriend(friend);
+           		database.addPlebFriend(plebFriend);
+    		}
+    	}
 	}
 
 }

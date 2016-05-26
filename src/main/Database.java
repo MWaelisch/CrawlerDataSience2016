@@ -219,5 +219,126 @@ public class Database {
 		
 	}
 	
+	public long getVipID(String atName){
+		try{
+			Statement statement = conn.createStatement();
+			ResultSet rs = statement.executeQuery( "SELECT id FROM vip WHERE userName = " + atName + ";" );
+			//fkt??
+			if (rs.next()) {
+			    return rs.getLong("ID");
+			}
+		} catch ( Exception e ) {
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			System.exit(0);
+		}
+		return 0;
+	}
+
+	
+	public void addPlebTweet(PlebTweet plebTweet){
+		PreparedStatement preparedStatement = null;
+
+		String insertTableSQL = "INSERT INTO plebTweets"
+				+ "(idStr, text, sentiment, authorId) VALUES"
+				+ "(?,?,?,?)";
+
+		try {
+			preparedStatement = conn.prepareStatement(insertTableSQL);
+
+			preparedStatement.setString(1, plebTweet.getIdStr());
+			preparedStatement.setString(2, plebTweet.getTweet());
+			preparedStatement.setInt(3, plebTweet.getSentiment());
+			preparedStatement.setLong(4, plebTweet.getAuthorId());
+
+			// execute insert SQL statement
+			preparedStatement.executeUpdate();
+		}catch (SQLException e) {
+
+			System.out.println(e.getMessage());
+
+		} finally {
+
+			if (preparedStatement != null) {
+				try {
+					preparedStatement.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	public void addPlebFriend(PlebFriend plebFriend){
+		PreparedStatement preparedStatement = null;
+
+		String insertTableSQL = "INSERT INTO plebFriends"
+				+ "(pleb, friend) VALUES"
+				+ "(?,?)";
+
+		try {
+			preparedStatement = conn.prepareStatement(insertTableSQL);
+
+			preparedStatement.setLong(1, plebFriend.getId());
+			preparedStatement.setLong(2, plebFriend.getFriend());
+
+			// execute insert SQL statement
+			preparedStatement.executeUpdate();
+
+			//System.out.println("PlebFriend Inserted!");
+		}catch (SQLException e) {
+
+			System.out.println(e.getMessage());
+
+		} finally {
+
+			if (preparedStatement != null) {
+				try {
+					preparedStatement.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	public boolean isIDInDB(long id, String idName, String db){
+		try{
+			Statement statement = conn.createStatement();
+			ResultSet rs = statement.executeQuery( "SELECT " + idName + " FROM " + db + " WHERE ID = " + id + ";" );
+			//fkt??
+			if (rs.next()) {
+				//long getid =
+			    rs.getInt(idName);
+			    if (rs.wasNull()) {
+					return false;
+			    } else return true;
+			}
+		} catch ( Exception e ) {
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			System.exit(0);
+		}
+		return false;
+	}
+	
+	public String executeQuery(String query){
+		System.out.println("here");
+		String r = "";
+		try{
+			Statement statement = conn.createStatement();
+			ResultSet rs = statement.executeQuery( query );
+			//fkt??
+			while (rs.next()) {
+				//long getid =
+			    r += "::" + rs.getInt("id")+ "\n";// + " " + rs.getInt("friend") +"\n";
+			}
+		} catch ( Exception e ) {
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			System.exit(0);
+		}
+		System.out.println(r);
+		return r;
+	}
 
 }

@@ -13,11 +13,13 @@ public class Main {
 		Properties config = getConfig();
 		Twitter4jWrapper wrapper = new Twitter4jWrapper(config);
 		CSVParser parser = new CSVParser(config);
-		ArrayList<String> vipNames = parser.parseVips();
-		System.out.println("Vip Liste erfolgreich erstellt");
+//		ArrayList<String> vipNames = parser.parseVips();
+		ArrayList<String[]> vipNickNames = parser.parseVipNickNames();
+		ArrayList<String> vipNames = parser.getVipNames(vipNickNames);
+		System.out.println("Vip Listen erfolgreich erstellt");
 //		wrapper.crawlVips(vipNames);
-		wrapper.crawlVipTweets(vipNames);
-		
+//		wrapper.crawlVipTweets(vipNames);
+		wrapper.searchTweets(vipNickNames);
 	}
 	
 	
