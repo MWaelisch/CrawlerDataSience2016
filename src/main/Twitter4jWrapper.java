@@ -177,7 +177,7 @@ public class Twitter4jWrapper {
 				List<Status> statuses = null;
 
 				Paging page = new Paging(1, 100);// page number, number per page
-				for (int i = 1; i < 2; i++) {
+				for (int i = 1; i < 2; i++) { //debug config -> get only 1 page
 					page.setPage(i);
 					if (i == 1) {
 						statuses = twitter.getUserTimeline(vip, page);
@@ -206,15 +206,15 @@ public class Twitter4jWrapper {
 					vipTweet.setText(status.getText());
 					if(status.getRetweetedStatus() != null){
 						vipTweet.setRetweetOrigin(status.getRetweetedStatus().getUser().getId());
-						System.out.println("Retweeted Text" + status.getRetweetedStatus().getText());
-						System.out.println("Origin Text " + status.getRetweetedStatus().getText());
-						System.out.println("Retweet Origin:" + status.getRetweetedStatus().getUser().getId());
-						System.out.println("Retweet Origin Name: " +  status.getRetweetedStatus().getUser().getName());		
+//						System.out.println("Retweeted Text" + status.getRetweetedStatus().getText());
+//						System.out.println("Origin Text " + status.getRetweetedStatus().getText());
+//						System.out.println("Retweet Origin:" + status.getRetweetedStatus().getUser().getId());
+//						System.out.println("Retweet Origin Name: " +  status.getRetweetedStatus().getUser().getName());		
 					}
-					if(status.getInReplyToUserId() > 1000){
-						System.out.println("In Reply to ID:" + status.getInReplyToUserId());
-						System.out.println("In Reply to Name " + status.getInReplyToScreenName());	
-					}
+//					if(status.getInReplyToUserId() > 1000){
+//						System.out.println("In Reply to ID:" + status.getInReplyToUserId());
+//						System.out.println("In Reply to Name " + status.getInReplyToScreenName());	
+//					}
 					database.addVipTweet(vipTweet);
 				}
 			}
