@@ -71,6 +71,7 @@ public class Twitter4jWrapper {
 				vip.setFriends(friends);
 				database.addVip(vip);
 				try {
+					System.out.println("Sleep 1 Minute...");
 					Thread.sleep(61000);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
@@ -208,8 +209,11 @@ public class Twitter4jWrapper {
 						System.out.println("Retweeted Text" + status.getRetweetedStatus().getText());
 						System.out.println("Origin Text " + status.getRetweetedStatus().getText());
 						System.out.println("Retweet Origin:" + status.getRetweetedStatus().getUser().getId());
-						System.out.println("Rwetweet Origin Name: " +  status.getRetweetedStatus().getUser().getName());
-						System.out.println("In Reply to:" + status.getInReplyToUserId());
+						System.out.println("Retweet Origin Name: " +  status.getRetweetedStatus().getUser().getName());		
+					}
+					if(status.getInReplyToUserId() > 1000){
+						System.out.println("In Reply to ID:" + status.getInReplyToUserId());
+						System.out.println("In Reply to Name " + status.getInReplyToScreenName());	
 					}
 					database.addVipTweet(vipTweet);
 				}
@@ -233,8 +237,13 @@ public class Twitter4jWrapper {
 		
 		for(String[] vipname : cut){
 			String q = "";
-			for(String v : vipname){
-				q += v + " ";
+			for(int i = 0; i<vipname.length; i++){
+				String v = vipname[i];
+				if(i<vipname.length-1){
+					q += v + " OR ";
+				}else{
+					q += v;
+				}
 			}
 			//debug
 			System.out.println("### vipname-query: " + q);

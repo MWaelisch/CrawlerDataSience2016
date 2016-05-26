@@ -73,14 +73,13 @@ public class CSVParser {
 				String[] tokens = line.split(DELIMITER, 1);
 
 				String[] namesSplit = tokens[0].split(",");
-				String atName = namesSplit[1].trim();
-				atName = atName.substring(1,atName.length()-1);
 				String[] names = new String[3];
-				names[VIP_NAME] = namesSplit[VIP_NAME].trim() + "\"";
+				names[VIP_NAME] = namesSplit[VIP_NAME].trim();
+				names[VIP_NAME] = names[VIP_NAME].substring(1, names[VIP_NAME].length());
 				names[VIP_AT_NAME] = namesSplit[VIP_AT_NAME].trim();
 				names[VIP_AT_NAME] = names[VIP_AT_NAME].substring(0, names[VIP_AT_NAME].length()-1);
 				names[VIP_HASH_NAME] = "#"+names[VIP_AT_NAME].substring(1);
-				//System.out.println("=== " + names[VIP_NAME] + " - " + names[VIP_AT_NAME] + " - " + names[VIP_HASH_NAME]);
+				System.out.println("=== " + names[VIP_NAME] + " - " + names[VIP_AT_NAME] + " - " + names[VIP_HASH_NAME]);
 				nameArrays.add(names);
 			}
 
