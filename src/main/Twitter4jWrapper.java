@@ -163,47 +163,57 @@ public class Twitter4jWrapper {
 	}
 	
 	public void crawlVipTweets(List<String> vips){
-        try {
-            List<Status> statuses = null;
-            String user = "marteria";
-            Paging page = new Paging (1, 100);//page number, number per page
-            for(int i = 1 ; i< 5;i++){
-            	page.setPage(i);
-            	if(i== 1){
-            		statuses = twitter.getUserTimeline(user,page);
-            	}else{
-            		statuses.addAll(twitter.getUserTimeline(user,page));
-            	}
-            	Thread.sleep(3000);
-            }
-            
-    		Database database = new Database();
-          for (Status status : statuses) {
-        	  VipTweet vipTweet = new VipTweet();
-        	  vipTweet.setIdStr(status.getId()+"");
-        	  vipTweet.setAuthorId(status.getUser().getId());
-        	  vipTweet.setAuthorName(status.getUser().getScreenName());
-        	  vipTweet.setInReplyTo(status.getInReplyToUserId());
-        	  
-        	  UserMentionEntity[] userMentionEntities = status.getUserMentionEntities(); 
-        	  long[] userMentions = new long[userMentionEntities.length];
-        	  for(int i = 0; i< userMentionEntities.length;i++){
-        		  long userMention =  userMentionEntities[i].getId();
-        		  userMentions[i] = userMention;
-        	  }
-        	  vipTweet.setMentions(userMentions);
-        	  vipTweet.setText(status.getText());
-        	  vipTweet.setRetweetOrigin(status.getRetweetedStatus().getUser().getId());
-        	  System.out.println("Retweeted Text" + status.getRetweetedStatus().getText());
-        	  System.out.println("Origin Text " + status.getRetweetedStatus().getText());
-        	  database.addVipTweet(vipTweet);
-          }
-            
-        } catch (TwitterException | InterruptedException te) {
-            te.printStackTrace();
-            System.out.println("Failed to get timeline: " + te.getMessage());
-            System.exit(-1);
-        }
+		try {
+
+			for (String vip : vips) {
+				List<Status> statuses = null;
+
+				Paging page = new Paging(1, 100);// page number, number per page
+				for (int i = 1; i < 2; i++) {
+					page.setPage(i);
+					if (i == 1) {
+						statuses = twitter.getUserTimeline(vip, page);
+					} else {
+						statuses.addAll(twitter.getUserTimeline(vip, page));
+					}
+					Thread.sleep(3000);
+				}
+
+				Database database = new Database();
+				for (Status status : statuses) {
+					VipTweet vipTweet = new VipTweet();
+					vipTweet.setIdStr(status.getId() + "");
+					vipTweet.setAuthorId(status.getUser().getId());
+					vipTweet.setAuthorName(status.getUser().getScreenName());
+					vipTweet.setInReplyTo(status.getInReplyToUserId());
+
+					UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
+					long[] userMentions = new long[userMentionEntities.length];
+					for (int i = 0; i < userMentionEntities.length; i++) {
+						long userMention = userMentionEntities[i].getId();
+						System.out.println(userMentionEntities[i].getScreenName());
+						userMentions[i] = userMention;
+					}
+					vipTweet.setMentions(userMentions);
+					vipTweet.setText(status.getText());
+					if(status.getRetweetedStatus() != null){
+						vipTweet.setRetweetOrigin(status.getRetweetedStatus().getUser().getId());
+						System.out.println("Retweeted Text" + status.getRetweetedStatus().getText());
+						System.out.println("Origin Text " + status.getRetweetedStatus().getText());
+						System.out.println("Retweet Origin:" + status.getRetweetedStatus().getUser().getId());
+						System.out.println("Rwetweet Origin Name: " +  status.getRetweetedStatus().getUser().getName());
+						System.out.println("In Reply to:" + status.getInReplyToUserId());
+					}
+					database.addVipTweet(vipTweet);
+				}
+			}
+
+		} catch (TwitterException | InterruptedException te) {
+			te.printStackTrace();
+			System.out.println("Failed to get timeline: " + te.getMessage());
+			System.exit(-1);
+		}
+
 	}
 
 }

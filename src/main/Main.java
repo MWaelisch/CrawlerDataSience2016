@@ -16,7 +16,7 @@ public class Main {
 		ArrayList<String> vipNames = parser.parseVips();
 		System.out.println("Vip Liste erfolgreich erstellt");
 //		wrapper.crawlVips(vipNames);
-//		wrapper.crawlVipTweets();
+		wrapper.crawlVipTweets(vipNames);
 		
 	}
 	

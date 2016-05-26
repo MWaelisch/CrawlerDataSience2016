@@ -157,7 +157,7 @@ public class Database {
 			preparedStatement.setString(3, vipTweet.getIdStr());
 			preparedStatement.setLong(4, vipTweet.getInReplyTo());
 			preparedStatement.setLong(5, vipTweet.getRetweetOrigin());
-			preparedStatement.setString(5, vipTweet.getText());
+			preparedStatement.setString(6, vipTweet.getText());
 
 			// execute insert SQL statement
 			preparedStatement.executeUpdate();
