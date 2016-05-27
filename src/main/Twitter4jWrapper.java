@@ -142,14 +142,20 @@ public class Twitter4jWrapper {
                     System.out.println("@" + user.getScreenName());
                     System.out.println("ID " + user.getId());
                     System.out.println("Name " + user.getName());
-                    System.out.println("FollowerCount " + user.getFollowersCount());    
-                    System.out.println("");
+                    System.out.println("FollowerCount " + user.getFollowersCount());   
+//                    System.out.println("Profilepicturemini " + user.getMiniProfileImageURL());
+//                    System.out.println("Profilepicture bigger" + user.getBiggerProfileImageURL());
+//                    System.out.println("Profilepicture" + user.getOriginalProfileImageURL());
+                    System.out.println("Profilepicture" + user.getProfileImageURL());
+                  
+                    
                     
                     Vip vip = new Vip();
                     vip.setId(user.getId());
                     vip.setScreenName(user.getScreenName());
                     vip.setUserName(user.getName());
                     vip.setFollowerCount(user.getFollowersCount());
+                    vip.setProfilePicture(user.getProfileImageURL());
                     vips.add(vip);
                     
             }       

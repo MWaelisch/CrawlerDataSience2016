@@ -57,8 +57,8 @@ public class Database {
 		PreparedStatement preparedStatement = null;
 
 		String insertTableSQL = "INSERT INTO vip"
-				+ "(id, screenName, userName, followerCount) VALUES"
-				+ "(?,?,?,?)";
+				+ "(id, screenName, userName, followerCount,profilePicture) VALUES"
+				+ "(?,?,?,?,?)";
 
 		try {
 			preparedStatement = conn.prepareStatement(insertTableSQL);
@@ -67,6 +67,7 @@ public class Database {
 			preparedStatement.setString(2, vip.getScreenName());
 			preparedStatement.setString(3, vip.getUserName());
 			preparedStatement.setInt(4, vip.getFollowerCount());
+			preparedStatement.setString(5, vip.getProfilePicture());
 
 			// execute insert SQL statement
 			preparedStatement.executeUpdate();

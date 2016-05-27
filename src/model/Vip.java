@@ -7,6 +7,7 @@ public class Vip {
 	private String UserName;
 	private int followerCount;
 	private long[] friends;
+	private String profilePicture;
 	
 	public Vip(){}
 
@@ -48,6 +49,14 @@ public class Vip {
 
 	public void setFriends(long[] friends) {
 		this.friends = friends;
+	}
+
+	public String getProfilePicture() {
+		return profilePicture;
+	}
+
+	public void setProfilePicture(String profilePicture) {
+		this.profilePicture = profilePicture;
 	}	
 
 }
