@@ -177,8 +177,8 @@ public class Twitter4jWrapper {
 			for (String vip : vips) {
 				List<Status> statuses = null;
 
-				Paging page = new Paging(1, 100);// page number, number per page
-				for (int i = 1; i < 2; i++) { //debug config -> get only 1 page
+				Paging page = new Paging(1, 200);// page number, number per page
+				for (int i = 1; i <= 5; i++) { //debug config -> get only 1 page
 					page.setPage(i);
 					if (i == 1) {
 						statuses = twitter.getUserTimeline(vip, page);
