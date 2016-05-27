@@ -17,8 +17,9 @@ public class Main {
 		ArrayList<String[]> vipNickNames = parser.parseVipNickNames();
 		ArrayList<String> vipNames = parser.getVipNames(vipNickNames);
 		System.out.println("Vip Listen erfolgreich erstellt");
-		wrapper.crawlVips(vipNames);
-		wrapper.crawlVipTweets(vipNames);
+		wrapper.checkRateLimit("/friends/ids");
+//		wrapper.crawlVips(vipNames);
+		//wrapper.crawlVipTweets(vipNames);
 //		wrapper.searchTweets(vipNickNames);	
 		database.closeConnection();
 	}

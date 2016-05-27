@@ -13,6 +13,7 @@ import twitter4j.IDs;
 import twitter4j.Paging;
 import twitter4j.Query;
 import twitter4j.QueryResult;
+import twitter4j.RateLimitStatus;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.Twitter;
@@ -49,6 +50,20 @@ public class Twitter4jWrapper {
 		twitter = tf.getInstance();
 	}
 	
+	public int checkRateLimit(String method){
+			  try {
+				RateLimitStatus status = twitter.getRateLimitStatus().get(method);
+				int limit = status.getRemaining();
+				System.out.println("Limit " + limit);
+				return limit;
+			} catch (TwitterException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return 0;
+			  
+	}
+	
 	
 	public void crawlVips(ArrayList<String> vipNames)
 	{
@@ -63,22 +78,25 @@ public class Twitter4jWrapper {
 			
 			System.out.println("Crawle Userdaten der Vips");
 			ArrayList<Vip> vips = this.lookupUsers(vipnamesArr);
+			
 			System.out.println("Userdaten gecrawled");
 			
 			System.out.println("Crawle Friends der Vips");
 			for(Vip vip : vips){
-				System.out.println("Crawle Friends von " + vip.getScreenName());
-				long[] friends = this.getFriendsIDs(vip.getScreenName());
-				vip.setFriends(friends);
-				database.addVip(vip);
-				try {
-					System.out.println("Sleep 1 Minute...");
-					Thread.sleep(61000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-	//				database.closeConnection();
+				if(this.checkRateLimit("/friends/ids") == 0){
+					try {
+						System.out.println("Sleep 15 minutes...");
+						Thread.sleep(901000);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+		//				database.closeConnection();
+					}
 				}
+					System.out.println("Crawle Friends von " + vip.getScreenName());
+					long[] friends = this.getFriendsIDs(vip.getScreenName());
+					vip.setFriends(friends);
+					database.addVip(vip);
 			}
 			System.out.println("Friends gecrawled");
 			
@@ -179,13 +197,16 @@ public class Twitter4jWrapper {
 				System.out.println("Crawl Tweets for " + vip);
 				Paging page = new Paging(1, 200);// page number, number per page
 				for (int i = 1; i <= 5; i++) { //debug config -> get only 1 page
+					if(this.checkRateLimit("/statuses/user_timeline") == 0){
+							System.out.println("Sleep 15 minutes...");
+							Thread.sleep(901000);
+					}
 					page.setPage(i);
 					if (i == 1) {
 						statuses = twitter.getUserTimeline(vip, page);
 					} else {
 						statuses.addAll(twitter.getUserTimeline(vip, page));
 					}
-					Thread.sleep(3000);
 				}
 				System.out.println("Finished crawling Tweets for " + vip);
 				
