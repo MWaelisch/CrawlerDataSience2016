@@ -176,7 +176,7 @@ public class Twitter4jWrapper {
 
 			for (String vip : vips) {
 				List<Status> statuses = null;
-
+				System.out.println("Crawl Tweets for " + vip);
 				Paging page = new Paging(1, 200);// page number, number per page
 				for (int i = 1; i <= 5; i++) { //debug config -> get only 1 page
 					page.setPage(i);
@@ -187,7 +187,9 @@ public class Twitter4jWrapper {
 					}
 					Thread.sleep(3000);
 				}
-
+				System.out.println("Finished crawling Tweets for " + vip);
+				
+				System.out.println("Saving Tweets for " + vip);
 	//			Database database = new Database();
 				for (Status status : statuses) {
 					VipTweet vipTweet = new VipTweet();
@@ -218,6 +220,7 @@ public class Twitter4jWrapper {
 //					}
 					database.addVipTweet(vipTweet);
 				}
+				System.out.println("Finished Saving Tweets for " + vip);
 				//	database.closeConnection();
 			}
 
