@@ -287,25 +287,21 @@ public class Twitter4jWrapper {
 		System.out.println("Finished search for mentions of VIPs");
 		
 		System.out.println("Start crawling PlebFriends");
-		int toSleep = 15;
 		//crawlPlebFriends(pt.get(0));
 		for(PlebTweet p : pt){
-			crawlPlebFriends(p);
-
-			if(--toSleep == 1){
-				//debug
-				break;
-		   		/*try {
-		   			System.out.println("Asleep for 15 minutes...");
-		  			//15 requests / 15 min
-		   			Thread.sleep(900000);
-		   		} catch (InterruptedException e) {
-		   			// TODO Auto-generated catch block
-		  			e.printStackTrace();
-		  		}
-		  		toSleep = 15;*/
+			if(this.checkRateLimit("/friends/ids") == 0){
+				try {
+					System.out.println("Sleep 15 minutes...");
+					Thread.sleep(901000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+	//				database.closeConnection();
+				}
 			}
+			crawlPlebFriends(p);
 		}
+		
 		System.out.println("Finished crawling PlebFriends");
 		//debug
 		//database.executeQuery("SELECT * FROM plebTweets;");
