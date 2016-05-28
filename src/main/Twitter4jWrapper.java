@@ -83,7 +83,7 @@ public class Twitter4jWrapper {
 			
 			System.out.println("Crawle Friends der Vips");
 			for(Vip vip : vips){
-				if(this.checkRateLimit("/friends/ids") == 0){
+				if(this.checkRateLimit("/friends/ids") <= 1){
 					try {
 						System.out.println("Sleep 15 minutes...");
 						Thread.sleep(901000);
