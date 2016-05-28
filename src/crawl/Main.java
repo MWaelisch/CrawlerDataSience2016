@@ -1,4 +1,4 @@
-package main;
+package crawl;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,7 +19,7 @@ public class Main {
 		System.out.println("Vip Listen erfolgreich erstellt");
 //		wrapper.checkRateLimit("/friends/ids");
 //		wrapper.crawlVips(vipNames);
-		wrapper.crawlVipTweets(vipNames);
+//		wrapper.crawlVipTweets(vipNames);
 //		wrapper.searchTweets(vipNickNames);	
 		database.closeConnection();
 	}
