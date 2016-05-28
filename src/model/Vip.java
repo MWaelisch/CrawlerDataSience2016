@@ -10,6 +10,11 @@ public class Vip {
 	private String profilePicture;
 	
 	public Vip(){}
+	
+	public Vip(String screenName, String UserName){
+		this.screenName = screenName;
+		this.UserName = UserName;
+	}
 
 	public long getId() {
 		return id;

@@ -4,11 +4,15 @@ public class PlebTweet {
 	private long authorId;
 	private String idStr;
     private String tweet;
-    private int sentiment;
-    
     private String screenName;
+    private int generatedId;
     
     public PlebTweet(){}
+    
+    public PlebTweet(long authorId, String screenName){
+    	this.authorId = authorId;
+    	this.screenName = screenName;
+    }
 
     public long getAuthorId() {
 		return authorId;
@@ -26,14 +30,6 @@ public class PlebTweet {
 		this.tweet = tweet;
 	}
 
-	public int getSentiment() {
-		return sentiment;
-	}
-
-	public void setSentiment(int sentiment) {
-		this.sentiment = sentiment;
-	}
-
 	public String getIdStr() {
 		return idStr;
 	}
@@ -49,4 +45,12 @@ public class PlebTweet {
 	public void setScreenName(String screenName) {
 		this.screenName = screenName;
 	}
+	
+	public int getGeneratedId() {
+		return generatedId;
+	}
+	
+	public void setGeneratedId(int generatedId) {
+		this.generatedId = generatedId;
+	}	
 }
