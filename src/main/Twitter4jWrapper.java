@@ -332,8 +332,8 @@ public class Twitter4jWrapper {
 	               	//debug
 	               	//System.out.println("tweets: " + tweets.toString());
 	               for (Status tweet : tweets) {
-	            	   count++;
 	            	   if(!tweet.isRetweet()){
+	            		   	count++;
 		                	PlebTweet plebTweet = new PlebTweet();
 		                	PlebTweetMention plebTweetMention = new PlebTweetMention();
 		                	
@@ -358,7 +358,7 @@ public class Twitter4jWrapper {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 	               }
-	           } while ((query = result.nextQuery()) != null);
+	           } while ((query = result.nextQuery()) != null && count <= 100);
 	           System.out.println("Number of tweets: " + count);
 	       } catch (TwitterException te) {
 	            te.printStackTrace();
