@@ -23,7 +23,7 @@ public class Database {
 			// create a database connection
 			Properties properties = new Properties();
 			properties.setProperty("PRAGMA foreign_keys", "ON");
-			conn = DriverManager.getConnection("jdbc:sqlite:resources/twitterData.db",properties);
+			conn = DriverManager.getConnection("jdbc:sqlite:resources/twitterData_vips_viptweets_plebTweets.db",properties);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -422,7 +422,7 @@ public class Database {
 			ResultSet rs = statement.executeQuery("SELECT * FROM plebTweets;");
 
 			while (rs.next()) {
-				PlebTweet pt = new PlebTweet(rs.getLong("authorId"), rs.getString("screenName"));
+				PlebTweet pt = new PlebTweet(rs.getLong("authorId"), rs.getString("text"));
 				
 				pts.add(pt);
 			}
@@ -434,15 +434,22 @@ public class Database {
 	}
 	
 	public void cleanDB(){
+		
 		PreparedStatement preparedStatement = null;
 
 		String removeUnnecessaryVipTweets = "DELETE FROM vipTweets " +
 											"WHERE retweetOrigin NOT IN (SELECT id FROM vip) " + 
-											"AND inReplyTo NOT IN (SELECT id FROM vip)";
+											"AND inReplyTo NOT IN (SELECT id FROM vip)" +
+											"AND NOT EXISTS (SELECT * FROM vipTweetMentions,vip WHERE vipTweetId=vipTweets.id AND mention=vip.id)";
 		
+		String removeUnnecessaryVipTweetMentions="DELETE FROM vipTweetMentions " +
+												 "WHERE vipTweetid NOT IN (SELECT id FROM vipTweets)" +
+												 "OR mention NOT IN (SELECT id FROM vip)";
 
 		String removeUnnecessaryVipFriends = "DELETE FROM vipFriends " +
-								"WHERE friend NOT IN (SELECT id FROM vip)";
+											 "WHERE friend NOT IN (SELECT id FROM vip)";
+		
+		String removeUnnecessaryPlebFriends = "DELETE FROM plebFriends WHERE friend NOT IN (SELECT id FROM vip)";
 		
 		try {
 
@@ -452,11 +459,24 @@ public class Database {
 			
 			preparedStatement.close();
 				
+			preparedStatement = conn.prepareStatement(removeUnnecessaryVipTweetMentions);
+			
+			preparedStatement.executeUpdate();
+			
+			preparedStatement.close();
+			
 			preparedStatement = conn.prepareStatement(removeUnnecessaryVipFriends);
 			
 			preparedStatement.executeUpdate();
 			
+			preparedStatement.close();
 			
+			preparedStatement = conn.prepareStatement(removeUnnecessaryPlebFriends);
+			
+			preparedStatement.executeUpdate();
+			
+			preparedStatement.close();
+					
 			
 		}catch (SQLException e) {
 

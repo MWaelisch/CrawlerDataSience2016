@@ -21,6 +21,7 @@ public class Main {
 //		wrapper.crawlVips(vipNames);
 //		wrapper.crawlVipTweets(vipNames);
 //		wrapper.searchTweets(vipNickNames);	
+		database.getAllPlebTweetsfromDB();
 		database.closeConnection();
 	}
 	
