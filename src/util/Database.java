@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Properties;
 
 import model.*;
@@ -220,10 +221,10 @@ public class Database {
 		
 	}
 	
-	public long getVipID(String atName){
+	public long getVipID(String screenName){
 		try{
 			Statement statement = conn.createStatement();
-			ResultSet rs = statement.executeQuery( "SELECT id FROM vip WHERE userName = " + atName + ";" );
+			ResultSet rs = statement.executeQuery( "SELECT * FROM vip WHERE screenName = '" + screenName + "';" );
 			//fkt??
 			if (rs.next()) {
 			    return rs.getLong("ID");
@@ -234,25 +235,71 @@ public class Database {
 		}
 		return 0;
 	}
+	
+	public void addPlebTweet(PlebTweet plebTweet, long vipId){
+		addPlebTweetData(plebTweet);
+		if(plebTweet.getGeneratedId() != 0){
+			PreparedStatement preparedStatement = null;
+
+			String insertTableSQL = "INSERT INTO plebTweetMentions"
+					+ "(plebTweetId, mention) VALUES"
+					+ "(?,?)";
+			try {
+				preparedStatement = conn.prepareStatement(insertTableSQL);
+				preparedStatement.setInt(1,plebTweet.getGeneratedId());
+				preparedStatement.setLong(2, vipId);
+				
+				// execute insert SQL statement
+				preparedStatement.executeUpdate();
+				preparedStatement.clearParameters();
+			}catch (SQLException e) {
+
+				System.out.println(e.getMessage());
+
+			} finally {
+
+				if (preparedStatement != null) {
+					try {
+						preparedStatement.close();
+					} catch (SQLException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+		}else{
+			try {
+				throw new Exception("VIP Tweet database Insert returned 0");
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
 
 	
-	public void addPlebTweet(PlebTweet plebTweet){
+	private void addPlebTweetData(PlebTweet plebTweet){
 		PreparedStatement preparedStatement = null;
 
 		String insertTableSQL = "INSERT INTO plebTweets"
-				+ "(idStr, text, sentiment, authorId) VALUES"
-				+ "(?,?,?,?)";
+				+ "(idStr, text, authorId) VALUES"
+				+ "(?,?,?)";
 
 		try {
 			preparedStatement = conn.prepareStatement(insertTableSQL);
 
 			preparedStatement.setString(1, plebTweet.getIdStr());
 			preparedStatement.setString(2, plebTweet.getTweet());
-			preparedStatement.setInt(3, plebTweet.getSentiment());
-			preparedStatement.setLong(4, plebTweet.getAuthorId());
+			preparedStatement.setLong(3, plebTweet.getAuthorId());
 
 			// execute insert SQL statement
 			preparedStatement.executeUpdate();
+			
+			ResultSet rs = preparedStatement.getGeneratedKeys();
+			if (rs.next()) {
+			  int generatedId = rs.getInt(1);
+			  plebTweet.setGeneratedId(generatedId);
+			}
 		}catch (SQLException e) {
 
 			System.out.println(e.getMessage());
@@ -324,7 +371,6 @@ public class Database {
 	}
 	
 	public String executeQuery(String query){
-		System.out.println("here");
 		String r = "";
 		try{
 			Statement statement = conn.createStatement();
@@ -332,7 +378,9 @@ public class Database {
 			//fkt??
 			while (rs.next()) {
 				//long getid =
-			    r += "::" + rs.getInt("id")+ "\n";// + " " + rs.getInt("friend") +"\n";
+			    r += //"#-#-#-#-#" + rs.getString("text")+ "\n";
+			    		"::" + rs.getLong("id")+ "\n";
+			    		// + " " + rs.getInt("friend") +"\n";
 			}
 		} catch ( Exception e ) {
 			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
@@ -340,6 +388,49 @@ public class Database {
 		}
 		System.out.println(r);
 		return r;
+	}
+	
+	public ArrayList<Vip> getAllVIPsfromDB(){
+		ArrayList<Vip> vips = new ArrayList<Vip>();
+		try{
+			Statement statement = conn.createStatement();
+			ResultSet rs = statement.executeQuery("SELECT * FROM vip;");
+			
+			while (rs.next()) {
+				Vip vip = new Vip(rs.getString("screenName"), rs.getString("userName"));
+				
+				//(id, screenName, userName, followerCount,profilePicture)
+//				vip.setId(rs.getLong("id"));
+//				vip.setScreenName(rs.getString("screenName"));
+//				vip.setUserName(rs.getString("userName"));
+//				vip.setFollowerCount(rs.getInt("followerCount"));
+//				vip.setProfilePicture(rs.getString("profilePicture"));
+				
+				vips.add(vip);
+			}
+		} catch ( Exception e ) {
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			System.exit(0);
+		}
+		return vips;
+	}
+
+	public ArrayList<PlebTweet> getAllPlebTweetsfromDB(){
+		ArrayList<PlebTweet> pts = new ArrayList<PlebTweet>();
+		try{
+			Statement statement = conn.createStatement();
+			ResultSet rs = statement.executeQuery("SELECT * FROM plebTweets;");
+
+			while (rs.next()) {
+				PlebTweet pt = new PlebTweet(rs.getLong("authorId"), rs.getString("screenName"));
+				
+				pts.add(pt);
+			}
+		} catch ( Exception e ) {
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			System.exit(0);
+		}
+		return pts;
 	}
 	
 	public void cleanDB(){
@@ -383,5 +474,4 @@ public class Database {
 			}
 		}
 	}
-
 }

@@ -1,12 +1,12 @@
 package model;
 
 public class PlebTweetMention {
-	private int plebTweetId;
-	private int mention;
+	private long plebTweetId;
+	private long mention;
 
 	public PlebTweetMention(){}
 
-	public int getPlebTweetId() {
+	public long getPlebTweetId() {
 		return plebTweetId;
 	}
 
@@ -14,7 +14,7 @@ public class PlebTweetMention {
 		this.plebTweetId = plebTweetId;
 	}
 
-	public int getMention() {
+	public long getMention() {
 		return mention;
 	}
 
