@@ -341,5 +341,47 @@ public class Database {
 		System.out.println(r);
 		return r;
 	}
+	
+	public void cleanDB(){
+		PreparedStatement preparedStatement = null;
+
+		String removeUnnecessaryVipTweets = "DELETE FROM vipTweets " +
+											"WHERE retweetOrigin NOT IN (SELECT id FROM vip) " + 
+											"AND inReplyTo NOT IN (SELECT id FROM vip)";
+		
+
+		String removeUnnecessaryVipFriends = "DELETE FROM vipFriends " +
+								"WHERE friend NOT IN (SELECT id FROM vip)";
+		
+		try {
+
+			preparedStatement = conn.prepareStatement(removeUnnecessaryVipTweets);
+
+			preparedStatement.executeUpdate();
+			
+			preparedStatement.close();
+				
+			preparedStatement = conn.prepareStatement(removeUnnecessaryVipFriends);
+			
+			preparedStatement.executeUpdate();
+			
+			
+			
+		}catch (SQLException e) {
+
+			System.out.println(e.getMessage());
+
+		} finally {
+
+			if (preparedStatement != null) {
+				try {
+					preparedStatement.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
 
 }
