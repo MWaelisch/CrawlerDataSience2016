@@ -364,14 +364,15 @@ public class Twitter4jWrapper {
 //		return pt;
 	}
 	
-	public void crawlPlebFriends(/*PlebTweet p*/){
+	public void crawlPlebFriends(int start_incl, int end_excl){
 	//	Database database = new Database();
 		System.out.println("Start crawling PlebFriends");
 		//crawlPlebFriends(pt.get(0));
 		
 		ArrayList<PlebTweet> pts = database.getAllPlebTweetsfromDB();
+		List<PlebTweet> pts_l = pts.subList(start_incl, end_excl);
 		
-		for(PlebTweet pt : pts){
+		for(PlebTweet pt : pts_l){
 			if(this.checkRateLimit("/friends/ids") == 0){
 				try {
 					System.out.println("Sleep 15 minutes...");
