@@ -1,7 +1,8 @@
 package model;
 
 public class VipTweet {
-	
+
+	//todo authorId sometimes also reflects the tweet Id
 	private long authorId;
 	private String authorName;
 	private String idStr;
@@ -10,8 +11,24 @@ public class VipTweet {
 	private long retweetOrigin;
 	private String text;
 	private int generatedId;
-	
-	
+	private int posSentiment;
+	private int negSentiment;
+
+
+	public VipTweet(){}
+
+	public VipTweet(long authorId, String text){
+		this.authorId = authorId;
+		this.text = text;
+	}
+
+	//for debugging
+	public VipTweet(long authorId, String text, int posSentiment){
+		this.authorId = authorId;
+		this.text = text;
+		this.posSentiment = posSentiment;
+	}
+
 	public long getAuthorId() {
 		return authorId;
 	}
@@ -59,6 +76,23 @@ public class VipTweet {
 	}
 	public void setGeneratedId(int generatedId) {
 		this.generatedId = generatedId;
-	}	
+	}
+	public int getPosSentiment() {
+		return posSentiment;
+	}
+	public void setPosSentiment(int posSentiment) {
+		this.posSentiment = posSentiment;
+	}
+	public int getNegSentiment() {
+		return negSentiment;
+	}
+	public void setNegSentiment(int negSentiment) {
+		this.negSentiment = negSentiment;
+	}
+	public void setSentiScore(Integer[] sentiScore){
+		this.posSentiment = sentiScore[0];
+		this.negSentiment = sentiScore[1];
+	}
+
 
 }

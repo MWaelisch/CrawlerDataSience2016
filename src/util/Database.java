@@ -23,7 +23,7 @@ public class Database {
 			// create a database connection
 			Properties properties = new Properties();
 			properties.setProperty("PRAGMA foreign_keys", "ON");
-			conn = DriverManager.getConnection("jdbc:sqlite:resources/twitterData_vips_viptweets_plebTweets.db",properties);
+			conn = DriverManager.getConnection("jdbc:sqlite:resources/twitterData_test.db",properties);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -415,6 +415,44 @@ public class Database {
 		return vips;
 	}
 
+	public ArrayList<VipTweet> getAllVIPTweetsfromDB(){
+		ArrayList<VipTweet> vipTweets = new ArrayList<VipTweet>();
+		try{
+			Statement statement = conn.createStatement();
+			ResultSet resultSet = statement.executeQuery("SELECT * FROM vipTweets;");
+
+			while (resultSet.next()) {
+				VipTweet vipTweet = new VipTweet(resultSet.getLong("id"), resultSet.getString("text"),resultSet.getInt("sentimentPos"));
+
+				vipTweets.add(vipTweet);
+			}
+		} catch ( Exception e ) {
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			System.exit(0);
+		}
+		return vipTweets;
+	}
+
+	//todo make usable for pleb and vip
+	public void updateTweets(ArrayList<VipTweet> vipTweets, String table){
+		String sql;
+		Statement stmt = null;
+
+		for(VipTweet vt : vipTweets){
+			sql = "UPDATE "+table+" " +
+					"SET sentimentPos = "+vt.getPosSentiment()+", sentimentNeg = "+vt.getNegSentiment()+
+					" WHERE id ="+vt.getAuthorId();
+			try {
+				stmt = conn.createStatement();
+				stmt.executeUpdate(sql);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+
+		}
+	}
+
+    //todo maybe merge with getAllVipTweets
 	public ArrayList<PlebTweet> getAllPlebTweetsfromDB(){
 		ArrayList<PlebTweet> pts = new ArrayList<PlebTweet>();
 		try{
