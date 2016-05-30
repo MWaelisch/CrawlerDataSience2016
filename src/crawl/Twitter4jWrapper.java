@@ -343,8 +343,11 @@ public class Twitter4jWrapper {
 		//crawlPlebFriends(pt.get(0));
 		
 		ArrayList<Tweet> pts = database.getAllTweetsfromDB("plebTweets");
+		System.out.println("tocrawl (whole): " + pts.size());
 		List<Tweet> pts_l = pts.subList(start_incl, end_excl);
 
+		int cnt_protected = 0;
+		int cnt_repeats = 0;
 		
 		for(Tweet pt : pts_l){
 			if(!database.isIDInDB(pt.getAuthorId(), "pleb", "plebFriends")){
@@ -358,19 +361,37 @@ public class Twitter4jWrapper {
 		//				database.closeConnection();
 					}
 				}
-				long[] friendList = this.getFriendsIDs(pt.getScreenName());
-		    	for(long friend : friendList){
-		    		if(database.isIDInDB(friend, "id", "vip")){
-		            	PlebFriend plebFriend = new PlebFriend();
-		            	plebFriend.setId(pt.getAuthorId());
-		        		plebFriend.setFriend(friend);
-		           		database.addPlebFriend(plebFriend);
-		    		}
-		    	}
+				long[] friendList;
+				try {
+					User user = twitter.showUser(pt.getAuthorId());
+					if(user.isProtected()){
+						System.out.println("User is protected :(");
+						cnt_protected++;
+						database.cleanProtectedPleb(pt.getGeneratedId());
+					} else {
+						friendList = this.getFriendsIDs(user.getScreenName());
+						for(long friend : friendList){
+				    		if(database.isIDInDB(friend, "id", "vip")){
+				            	PlebFriend plebFriend = new PlebFriend();
+				            	plebFriend.setId(pt.getAuthorId());
+				        		plebFriend.setFriend(friend);
+				           		database.addPlebFriend(plebFriend);
+				    		}
+				    	}
+					}
+				} catch (TwitterException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		    	
+			} else { 
+				System.out.println("Pleb was in DB"); 
+				cnt_repeats++;
 			}
 		}
 		
-		System.out.println("Finished crawling PlebFriends");
+		System.out.println("Finished crawling PlebFriends " + start_incl + " to " + end_excl
+				+"\n -- with " + cnt_repeats + " repeats and " + cnt_protected + "protected accounts");
 		//debug
 		//database.executeQuery("SELECT * FROM plebTweets;");
 	//	database.closeConnection();

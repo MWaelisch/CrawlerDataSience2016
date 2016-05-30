@@ -553,4 +553,41 @@ public class Database {
 			}
 		}
 	}
+	
+	public void cleanProtectedPleb(long tweetId){
+		
+		PreparedStatement preparedStatement = null;
+
+		String removeFromPlebTweets = "DELETE FROM plebTweets " +
+									  "WHERE id = " + tweetId + ";";
+		
+		String removeFromPlebTweetMentions = "DELETE FROM plebTweetMentions" +
+											 "WHERE plebTweetId = " + tweetId + ";";
+		
+		
+		try {
+
+			preparedStatement = conn.prepareStatement(removeFromPlebTweets);
+			preparedStatement.executeUpdate();
+			preparedStatement.close();
+			
+			preparedStatement = conn.prepareStatement(removeFromPlebTweetMentions);
+			preparedStatement.executeUpdate();
+			preparedStatement.close();
+		}catch (SQLException e) {
+
+			System.out.println(e.getMessage());
+
+		} finally {
+
+			if (preparedStatement != null) {
+				try {
+					preparedStatement.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
 }
