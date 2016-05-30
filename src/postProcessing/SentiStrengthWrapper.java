@@ -15,6 +15,6 @@ public class SentiStrengthWrapper {
 	
 	public void testSenti(){
 		System.out.println(sentiStrength.computeSentimentScores("Das wetter ist schön.")); 
-		System.out.println(sentiStrength.computeSentimentScores("I liebe hunde.")); 
+		System.out.println(sentiStrength.computeSentimentScores("I liebe hunde nicht ich hasse sie.")); 
 	}
 }
