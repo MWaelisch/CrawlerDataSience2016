@@ -448,7 +448,7 @@ public class Database {
 		for(Tweet t : tweets){
 			sql = "UPDATE "+table+" " +
 					"SET sentimentPos = "+t.getSentimentPos()+", sentimentNeg = "+t.getSentimentNeg()+
-					" WHERE id ="+t.getAuthorId();
+					" WHERE id ="+t.getGeneratedId();
 			try {
 				stmt = conn.createStatement();
 				stmt.executeUpdate(sql);
@@ -504,6 +504,39 @@ public class Database {
 			preparedStatement.close();
 					
 			
+		}catch (SQLException e) {
+
+			System.out.println(e.getMessage());
+
+		} finally {
+
+			if (preparedStatement != null) {
+				try {
+					preparedStatement.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+
+	public void cleanPlebTweets(){
+		
+		PreparedStatement preparedStatement = null;
+
+		String removeUnnecessaryPlebTweets = "DELETE FROM plebTweets " +
+											"WHERE sentimentPos = 1 AND sentimentNeg = -1;";
+		
+		
+		try {
+
+			preparedStatement = conn.prepareStatement(removeUnnecessaryPlebTweets);
+
+			preparedStatement.executeUpdate();
+			
+			preparedStatement.close();
 		}catch (SQLException e) {
 
 			System.out.println(e.getMessage());
