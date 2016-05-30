@@ -355,6 +355,7 @@ public class Database {
 		try{
 			Statement statement = conn.createStatement();
 			ResultSet rs = statement.executeQuery( "SELECT " + idName + " FROM " + db + " WHERE ID = " + id + ";" );
+			statement.close();
 			//fkt??
 			if (rs.next()) {
 				//long getid =
@@ -375,6 +376,7 @@ public class Database {
 		try{
 			Statement statement = conn.createStatement();
 			ResultSet rs = statement.executeQuery( query );
+			statement.close();
 			//fkt??
 			while (rs.next()) {
 				//long getid =
@@ -395,7 +397,7 @@ public class Database {
 		try{
 			Statement statement = conn.createStatement();
 			ResultSet rs = statement.executeQuery("SELECT * FROM vip;");
-			
+			statement.close();
 			while (rs.next()) {
 				Vip vip = new Vip(rs.getString("screenName"), rs.getString("userName"));
 				
@@ -420,7 +422,7 @@ public class Database {
 		try{
 			Statement statement = conn.createStatement();
 			ResultSet resultSet = statement.executeQuery("SELECT * FROM vipTweets;");
-
+			statement.close();
 			while (resultSet.next()) {
 				VipTweet vipTweet = new VipTweet(resultSet.getLong("id"), resultSet.getString("text"),resultSet.getInt("sentimentPos"));
 
@@ -445,6 +447,7 @@ public class Database {
 			try {
 				stmt = conn.createStatement();
 				stmt.executeUpdate(sql);
+				stmt.close();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -458,7 +461,7 @@ public class Database {
 		try{
 			Statement statement = conn.createStatement();
 			ResultSet rs = statement.executeQuery("SELECT * FROM plebTweets;");
-
+			statement.close();
 			while (rs.next()) {
 				PlebTweet pt = new PlebTweet(rs.getLong("authorId"), rs.getString("text"));
 				
