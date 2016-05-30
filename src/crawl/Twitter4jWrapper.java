@@ -373,25 +373,27 @@ public class Twitter4jWrapper {
 		List<PlebTweet> pts_l = pts.subList(start_incl, end_excl);
 		
 		for(PlebTweet pt : pts_l){
-			if(this.checkRateLimit("/friends/ids") == 0){
-				try {
-					System.out.println("Sleep 15 minutes...");
-					Thread.sleep(901000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-	//				database.closeConnection();
+			if(!database.isIDInDB(pt.getAuthorId(), "pleb", "plebFriends")){
+				if(this.checkRateLimit("/friends/ids") == 0){
+					try {
+						System.out.println("Sleep 15 minutes...");
+						Thread.sleep(901000);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+		//				database.closeConnection();
+					}
 				}
+				long[] friendList = this.getFriendsIDs(pt.getScreenName());
+		    	for(long friend : friendList){
+		    		if(database.isIDInDB(friend, "id", "vip")){
+		            	PlebFriend plebFriend = new PlebFriend();
+		            	plebFriend.setId(pt.getAuthorId());
+		        		plebFriend.setFriend(friend);
+		           		database.addPlebFriend(plebFriend);
+		    		}
+		    	}
 			}
-			long[] friendList = this.getFriendsIDs(pt.getScreenName());
-	    	for(long friend : friendList){
-	    		if(database.isIDInDB(friend, "id", "vip")){
-	            	PlebFriend plebFriend = new PlebFriend();
-	            	plebFriend.setId(pt.getAuthorId());
-	        		plebFriend.setFriend(friend);
-	           		database.addPlebFriend(plebFriend);
-	    		}
-	    	}
 		}
 		
 		System.out.println("Finished crawling PlebFriends");

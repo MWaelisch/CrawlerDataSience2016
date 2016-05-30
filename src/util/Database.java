@@ -354,7 +354,7 @@ public class Database {
 	public boolean isIDInDB(long id, String idName, String db){
 		try{
 			Statement statement = conn.createStatement();
-			ResultSet rs = statement.executeQuery( "SELECT " + idName + " FROM " + db + " WHERE ID = " + id + ";" );
+			ResultSet rs = statement.executeQuery( "SELECT " + idName + " FROM " + db + " WHERE " + idName + " = " + id + ";" );
 			//fkt??
 			if (rs.next()) {
 				//long getid =
