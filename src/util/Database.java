@@ -23,7 +23,7 @@ public class Database {
 			// create a database connection
 			Properties properties = new Properties();
 			properties.setProperty("PRAGMA foreign_keys", "ON");
-			conn = DriverManager.getConnection("jdbc:sqlite:resources/twitterData_test.db",properties);
+			conn = DriverManager.getConnection("jdbc:sqlite:resources/twitterData_vips_viptweets_plebTweets+posneg.db",properties);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -155,7 +155,7 @@ public class Database {
 
 			
 			preparedStatement.setLong(1, vipTweet.getAuthorId());
-			preparedStatement.setString(2, vipTweet.getAuthorName());
+			preparedStatement.setString(2, vipTweet.getScreenName());
 			preparedStatement.setString(3, vipTweet.getIdStr());
 			preparedStatement.setLong(4, vipTweet.getInReplyTo());
 			preparedStatement.setLong(5, vipTweet.getRetweetOrigin());
@@ -236,7 +236,7 @@ public class Database {
 		return 0;
 	}
 	
-	public void addPlebTweet(PlebTweet plebTweet, long vipId){
+	public void addPlebTweet(Tweet plebTweet, long vipId){
 		addPlebTweetData(plebTweet);
 		if(plebTweet.getGeneratedId() != 0){
 			PreparedStatement preparedStatement = null;
@@ -278,7 +278,7 @@ public class Database {
 	}
 
 	
-	private void addPlebTweetData(PlebTweet plebTweet){
+	private void addPlebTweetData(Tweet plebTweet){
 		PreparedStatement preparedStatement = null;
 
 		String insertTableSQL = "INSERT INTO plebTweets"
@@ -289,7 +289,7 @@ public class Database {
 			preparedStatement = conn.prepareStatement(insertTableSQL);
 
 			preparedStatement.setString(1, plebTweet.getIdStr());
-			preparedStatement.setString(2, plebTweet.getTweet());
+			preparedStatement.setString(2, plebTweet.getText());
 			preparedStatement.setLong(3, plebTweet.getAuthorId());
 
 			// execute insert SQL statement
@@ -354,7 +354,8 @@ public class Database {
 	public boolean isIDInDB(long id, String idName, String db){
 		try{
 			Statement statement = conn.createStatement();
-			ResultSet rs = statement.executeQuery( "SELECT " + idName + " FROM " + db + " WHERE ID = " + id + ";" );
+			ResultSet rs = statement.executeQuery( "SELECT " + idName + " FROM " + db + " WHERE " + idName + " = " + id + ";" );
+			
 			//fkt??
 			if (rs.next()) {
 				//long getid =
@@ -415,33 +416,39 @@ public class Database {
 		return vips;
 	}
 
-	public ArrayList<VipTweet> getAllVIPTweetsfromDB(){
-		ArrayList<VipTweet> vipTweets = new ArrayList<VipTweet>();
+	public ArrayList<Tweet> getAllTweetsfromDB(String table){
+		ArrayList<Tweet> ts = new ArrayList<Tweet>();
 		try{
 			Statement statement = conn.createStatement();
-			ResultSet resultSet = statement.executeQuery("SELECT * FROM vipTweets;");
+			ResultSet rs = statement.executeQuery("SELECT * FROM " + table);
 
-			while (resultSet.next()) {
-				VipTweet vipTweet = new VipTweet(resultSet.getLong("id"), resultSet.getString("text"),resultSet.getInt("sentimentPos"));
-
-				vipTweets.add(vipTweet);
+			while (rs.next()) {
+				Tweet t = new Tweet(rs.getLong("authorId"),
+								rs.getString("idStr"),
+								rs.getString("text"),
+								rs.getInt("id"),
+								rs.getInt("sentimentPos"),
+								rs.getInt("sentimentNeg"));
+				
+				ts.add(t);
 			}
 		} catch ( Exception e ) {
 			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
 			System.exit(0);
 		}
-		return vipTweets;
+		return ts;
 	}
+	
 
 	//todo make usable for pleb and vip
-	public void updateTweets(ArrayList<VipTweet> vipTweets, String table){
+	public void updateTweets(ArrayList<Tweet> tweets, String table){
 		String sql;
 		Statement stmt = null;
 
-		for(VipTweet vt : vipTweets){
+		for(Tweet t : tweets){
 			sql = "UPDATE "+table+" " +
-					"SET sentimentPos = "+vt.getPosSentiment()+", sentimentNeg = "+vt.getNegSentiment()+
-					" WHERE id ="+vt.getAuthorId();
+					"SET sentimentPos = "+t.getSentimentPos()+", sentimentNeg = "+t.getSentimentNeg()+
+					" WHERE id ="+t.getAuthorId();
 			try {
 				stmt = conn.createStatement();
 				stmt.executeUpdate(sql);
@@ -450,25 +457,6 @@ public class Database {
 			}
 
 		}
-	}
-
-    //todo maybe merge with getAllVipTweets
-	public ArrayList<PlebTweet> getAllPlebTweetsfromDB(){
-		ArrayList<PlebTweet> pts = new ArrayList<PlebTweet>();
-		try{
-			Statement statement = conn.createStatement();
-			ResultSet rs = statement.executeQuery("SELECT * FROM plebTweets;");
-
-			while (rs.next()) {
-				PlebTweet pt = new PlebTweet(rs.getLong("authorId"), rs.getString("text"));
-				
-				pts.add(pt);
-			}
-		} catch ( Exception e ) {
-			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
-			System.exit(0);
-		}
-		return pts;
 	}
 	
 	public void cleanDB(){
