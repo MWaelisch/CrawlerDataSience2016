@@ -367,14 +367,17 @@ public class Twitter4jWrapper {
 				long[] friendList;
 				try {
 					if(leftToShow <= 1){
-						try {
-							System.out.println("Sleep 15 minutes...");
-							Thread.sleep(901000);
-							leftToShow = this.checkRateLimit("/users/show/:id");
-						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-			//				database.closeConnection();
+						leftToShow = this.checkRateLimit("/users/show/:id");
+						if(leftToShow <= 1){
+							try {
+								System.out.println("Sleep 15 minutes...");
+								Thread.sleep(901000);
+								leftToShow = this.checkRateLimit("/users/show/:id");
+							} catch (InterruptedException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+				//				database.closeConnection();
+							}
 						}
 					}
 					User user = twitter.showUser(pt.getAuthorId());

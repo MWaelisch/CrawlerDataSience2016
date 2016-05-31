@@ -356,8 +356,6 @@ public class Database {
 			Statement statement = conn.createStatement();
 			ResultSet rs = statement.executeQuery( "SELECT " + idName + " FROM " + db + " WHERE " + idName + " = " + id + ";" );
 			
-			statement.close();
-			//fkt??
 			if (rs.next()) {
 				//long getid =
 			    rs.getInt(idName);
@@ -365,6 +363,8 @@ public class Database {
 					return false;
 			    } else return true;
 			}
+			
+			statement.close();
 		} catch ( Exception e ) {
 			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
 			System.exit(0);
@@ -372,24 +372,36 @@ public class Database {
 		return false;
 	}
 	
+	//debug
 	public String executeQuery(String query){
 		String r = "";
+		String selectPlebMentions =  "SELECT authorId, COUNT(pm.mention) AS friendcnt "//"DELETE pm, pt "
+				+ "FROM plebTweetMentions pm "
+				+ "JOIN plebTweets pt ON pm.plebTweetId = pt.id "
+				+ "JOIN plebFriends pf ON pt.authorId = pf.pleb "
+				+ "WHERE pf.friend = 0 "
+			//	+ "AND (SELECT COUNT(pm2.mention) AS friendcnt FROM plebTweets pt2 JOIN plebTweetMentions pm2 ON pm.plebTweetId = pt.id"
+				+ "GROUP BY pt.authorId HAVING COUNT(pm.mention) >= 2";
+//				+ "GROUP BY pt.authorId, pm.mention"
+//				+ "HAVING COUNT() " ;
 		try{
 			Statement statement = conn.createStatement();
-			ResultSet rs = statement.executeQuery( query );
-			statement.close();
-			//fkt??
+			ResultSet rs = statement.executeQuery(selectPlebMentions);	//query );
+			
 			while (rs.next()) {
 				//long getid =
 			    r += //"#-#-#-#-#" + rs.getString("text")+ "\n";
-			    		"::" + rs.getLong("id")+ "\n";
+//			    		"::" + rs.getLong("pleb")+ "\n";
 			    		// + " " + rs.getInt("friend") +"\n";
+			    		":: " + rs.getLong("authorId") + " # " + rs.getInt("friendcnt") + "\n";
 			}
+			
+			statement.close();
 		} catch ( Exception e ) {
 			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
 			System.exit(0);
 		}
-		System.out.println(r);
+		System.out.println("result: " + r);
 		return r;
 	}
 	
@@ -398,7 +410,7 @@ public class Database {
 		try{
 			Statement statement = conn.createStatement();
 			ResultSet rs = statement.executeQuery("SELECT * FROM vip;");
-			statement.close();
+			
 			while (rs.next()) {
 				Vip vip = new Vip(rs.getString("screenName"), rs.getString("userName"));
 				
@@ -411,6 +423,8 @@ public class Database {
 				
 				vips.add(vip);
 			}
+			
+			statement.close();
 		} catch ( Exception e ) {
 			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
 			System.exit(0);
@@ -423,7 +437,6 @@ public class Database {
 		try{
 			Statement statement = conn.createStatement();
 			ResultSet rs = statement.executeQuery("SELECT * FROM " + table + " ORDER BY id ASC");
-			statement.close();
 		
 			while (rs.next()) {
 				Tweet t = new Tweet(rs.getLong("authorId"),
@@ -435,6 +448,8 @@ public class Database {
 				
 				ts.add(t);
 			}
+			
+			statement.close();
 		} catch ( Exception e ) {
 			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
 			System.exit(0);
@@ -599,22 +614,25 @@ public class Database {
 		}
 	}
 	
-	//cleanPlebTweets&PlebTweetMentions?
-	//tweeten aber uU auch ueber andere Vips
+	//tweeten uU auch ueber andere Vips (aber anscheinend nicht viele)
+	//stimmt removePlebTweet?
 	public void cleanPlebFriends(){
 		PreparedStatement preparedStatement = null;
 		String removeFromPlebFriends = "DELETE FROM plebTweets " +
 									  "WHERE friend = " + 0;
 		
-		/*String selectPlebMentions = "DELETE pm, pt "
-				+ "FROM plebTweetMentions pm "
-				+ "JOIN plebTweets pt ON pm.plebTweetId = pt.id "
-				+ "JOIN plebFriends pf ON pt.authorId = pf.pleb "
-				+ "WHERE pf.friend = 0 "
-				+ "GROUP BY pt.authorId, pm.mention"
-				+ "HAVING COUNT() " ;*/
+		String removePlebTweet = "DELETE pm, pt "
+			+ "FROM plebTweetMentions pm "
+			+ "JOIN plebTweets pt ON pm.plebTweetId = pt.id "
+			+ "JOIN plebFriends pf ON pt.authorId = pf.pleb "
+			+ "WHERE pf.friend = 0 "
+			+ "GROUP BY pt.authorId HAVING COUNT(pm.mention) < 2";
 		
 		try {
+			preparedStatement = conn.prepareStatement(removePlebTweet);
+			preparedStatement.executeUpdate();
+			preparedStatement.close();
+			
 			preparedStatement = conn.prepareStatement(removeFromPlebFriends);
 			preparedStatement.executeUpdate();
 			preparedStatement.close();
