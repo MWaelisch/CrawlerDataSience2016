@@ -352,7 +352,6 @@ public class Twitter4jWrapper {
         int leftToShow = this.checkRateLimit("/users/show/:id");
 		for(Tweet pt : pts_l){
 			if(!database.isIDInDB(pt.getAuthorId(), "pleb", "plebFriends")){
-
 				if(this.checkRateLimit("/friends/ids") == 0){
 					try {
 						System.out.println("Sleep 15 minutes...");
