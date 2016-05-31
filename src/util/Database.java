@@ -420,7 +420,7 @@ public class Database {
 		ArrayList<Tweet> ts = new ArrayList<Tweet>();
 		try{
 			Statement statement = conn.createStatement();
-			ResultSet rs = statement.executeQuery("SELECT * FROM " + table);
+			ResultSet rs = statement.executeQuery("SELECT * FROM " + table + " ORDER BY id ASC");
 
 			while (rs.next()) {
 				Tweet t = new Tweet(rs.getLong("authorId"),
@@ -527,7 +527,7 @@ public class Database {
 		PreparedStatement preparedStatement = null;
 
 		String removeUnnecessaryPlebTweets = "DELETE FROM plebTweets " +
-											"WHERE sentimentPos = 1 AND sentimentNeg = -1;";
+											"WHERE sentimentPos = 1 AND sentimentNeg = -1";
 		
 		
 		try {
@@ -559,10 +559,10 @@ public class Database {
 		PreparedStatement preparedStatement = null;
 
 		String removeFromPlebTweets = "DELETE FROM plebTweets " +
-									  "WHERE id = " + tweetId + ";";
+									  "WHERE id = " + tweetId;
 		
-		String removeFromPlebTweetMentions = "DELETE FROM plebTweetMentions" +
-											 "WHERE plebTweetId = " + tweetId + ";";
+		String removeFromPlebTweetMentions = "DELETE FROM plebTweetMentions " +
+											 "WHERE plebTweetId = " + tweetId;
 		
 		
 		try {
@@ -571,9 +571,51 @@ public class Database {
 			preparedStatement.executeUpdate();
 			preparedStatement.close();
 			
+			System.out.println("deleted plebTweet");
+			
 			preparedStatement = conn.prepareStatement(removeFromPlebTweetMentions);
 			preparedStatement.executeUpdate();
 			preparedStatement.close();
+			
+			System.out.println("deleted plebTweetMention");
+		}catch (SQLException e) {
+
+			System.out.println(e.getMessage());
+
+		} finally {
+
+			if (preparedStatement != null) {
+				try {
+					preparedStatement.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	//cleanPlebTweets&PlebTweetMentions?
+	//tweeten aber uU auch ueber andere Vips
+	public void cleanPlebFriends(){
+		PreparedStatement preparedStatement = null;
+		String removeFromPlebFriends = "DELETE FROM plebTweets " +
+									  "WHERE friend = " + 0;
+		
+		/*String selectPlebMentions = "DELETE pm, pt "
+				+ "FROM plebTweetMentions pm "
+				+ "JOIN plebTweets pt ON pm.plebTweetId = pt.id "
+				+ "JOIN plebFriends pf ON pt.authorId = pf.pleb "
+				+ "WHERE pf.friend = 0 "
+				+ "GROUP BY pt.authorId, pm.mention"
+				+ "HAVING COUNT() " ;*/
+		
+		try {
+			preparedStatement = conn.prepareStatement(removeFromPlebFriends);
+			preparedStatement.executeUpdate();
+			preparedStatement.close();
+			
+			System.out.println("deleted plebFriends");
 		}catch (SQLException e) {
 
 			System.out.println(e.getMessage());

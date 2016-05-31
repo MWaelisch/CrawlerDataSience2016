@@ -262,7 +262,7 @@ public class Twitter4jWrapper {
 
 	public void searchTweets(){
 		System.out.println("Search for mentions of VIPs");
-		ArrayList<Tweet> pt = new ArrayList<Tweet>();
+//		ArrayList<Tweet> pt = new ArrayList<Tweet>();
 		
 		//debug
 //		database.executeQuery("SELECT * FROM PlebTweets");
@@ -348,9 +348,11 @@ public class Twitter4jWrapper {
 
 		int cnt_protected = 0;
 		int cnt_repeats = 0;
-		
+
+        int leftToShow = this.checkRateLimit("/users/show/:id");
 		for(Tweet pt : pts_l){
 			if(!database.isIDInDB(pt.getAuthorId(), "pleb", "plebFriends")){
+
 				if(this.checkRateLimit("/friends/ids") == 0){
 					try {
 						System.out.println("Sleep 15 minutes...");
@@ -361,23 +363,44 @@ public class Twitter4jWrapper {
 		//				database.closeConnection();
 					}
 				}
+				System.out.println("add: " + pt.getAuthorId());
 				long[] friendList;
 				try {
+					if(leftToShow <= 1){
+						try {
+							System.out.println("Sleep 15 minutes...");
+							Thread.sleep(901000);
+							leftToShow = this.checkRateLimit("/users/show/:id");
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+			//				database.closeConnection();
+						}
+					}
 					User user = twitter.showUser(pt.getAuthorId());
+					leftToShow--;
 					if(user.isProtected()){
 						System.out.println("User is protected :(");
 						cnt_protected++;
 						database.cleanProtectedPleb(pt.getGeneratedId());
 					} else {
 						friendList = this.getFriendsIDs(user.getScreenName());
+						boolean hasVipFriend = false;
 						for(long friend : friendList){
 				    		if(database.isIDInDB(friend, "id", "vip")){
 				            	PlebFriend plebFriend = new PlebFriend();
 				            	plebFriend.setId(pt.getAuthorId());
 				        		plebFriend.setFriend(friend);
 				           		database.addPlebFriend(plebFriend);
+				           		hasVipFriend = true;
 				    		}
 				    	}
+						if(!hasVipFriend){
+							PlebFriend plebFriend = new PlebFriend();
+			            	plebFriend.setId(pt.getAuthorId());
+			        		plebFriend.setFriend(0);
+			           		database.addPlebFriend(plebFriend);
+						}
 					}
 				} catch (TwitterException e) {
 					// TODO Auto-generated catch block
@@ -385,8 +408,8 @@ public class Twitter4jWrapper {
 				}
 		    	
 			} else { 
-				System.out.println("Pleb was in DB"); 
-				cnt_repeats++;
+				System.out.println("Pleb was in DB :" + pt.getAuthorId()); 
+				cnt_repeats++; 
 			}
 		}
 		
