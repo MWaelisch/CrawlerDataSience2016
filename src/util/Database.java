@@ -23,7 +23,7 @@ public class Database {
 			// create a database connection
 			Properties properties = new Properties();
 			properties.setProperty("PRAGMA foreign_keys", "ON");
-			conn = DriverManager.getConnection("jdbc:sqlite:resources/twitterData_test.db",properties);
+			conn = DriverManager.getConnection("jdbc:sqlite:resources/twitterData_vips_viptweets_plebTweets+posneg.db",properties);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -155,7 +155,7 @@ public class Database {
 
 			
 			preparedStatement.setLong(1, vipTweet.getAuthorId());
-			preparedStatement.setString(2, vipTweet.getAuthorName());
+			preparedStatement.setString(2, vipTweet.getScreenName());
 			preparedStatement.setString(3, vipTweet.getIdStr());
 			preparedStatement.setLong(4, vipTweet.getInReplyTo());
 			preparedStatement.setLong(5, vipTweet.getRetweetOrigin());
@@ -236,7 +236,7 @@ public class Database {
 		return 0;
 	}
 	
-	public void addPlebTweet(PlebTweet plebTweet, long vipId){
+	public void addPlebTweet(Tweet plebTweet, long vipId){
 		addPlebTweetData(plebTweet);
 		if(plebTweet.getGeneratedId() != 0){
 			PreparedStatement preparedStatement = null;
@@ -278,7 +278,7 @@ public class Database {
 	}
 
 	
-	private void addPlebTweetData(PlebTweet plebTweet){
+	private void addPlebTweetData(Tweet plebTweet){
 		PreparedStatement preparedStatement = null;
 
 		String insertTableSQL = "INSERT INTO plebTweets"
@@ -289,7 +289,7 @@ public class Database {
 			preparedStatement = conn.prepareStatement(insertTableSQL);
 
 			preparedStatement.setString(1, plebTweet.getIdStr());
-			preparedStatement.setString(2, plebTweet.getTweet());
+			preparedStatement.setString(2, plebTweet.getText());
 			preparedStatement.setLong(3, plebTweet.getAuthorId());
 
 			// execute insert SQL statement
@@ -354,9 +354,9 @@ public class Database {
 	public boolean isIDInDB(long id, String idName, String db){
 		try{
 			Statement statement = conn.createStatement();
-			ResultSet rs = statement.executeQuery( "SELECT " + idName + " FROM " + db + " WHERE ID = " + id + ";" );
-			statement.close();
-			//fkt??
+
+			ResultSet rs = statement.executeQuery( "SELECT " + idName + " FROM " + db + " WHERE " + idName + " = " + id + ";" );
+
 			if (rs.next()) {
 				//long getid =
 			    rs.getInt(idName);
@@ -364,6 +364,8 @@ public class Database {
 					return false;
 			    } else return true;
 			}
+			
+			statement.close();
 		} catch ( Exception e ) {
 			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
 			System.exit(0);
@@ -371,24 +373,36 @@ public class Database {
 		return false;
 	}
 	
+	//debug
 	public String executeQuery(String query){
 		String r = "";
+		String selectPlebMentions =  "SELECT authorId, COUNT(pm.mention) AS friendcnt "//"DELETE pm, pt "
+				+ "FROM plebTweetMentions pm "
+				+ "JOIN plebTweets pt ON pm.plebTweetId = pt.id "
+				+ "JOIN plebFriends pf ON pt.authorId = pf.pleb "
+				+ "WHERE pf.friend = 0 "
+			//	+ "AND (SELECT COUNT(pm2.mention) AS friendcnt FROM plebTweets pt2 JOIN plebTweetMentions pm2 ON pm.plebTweetId = pt.id"
+				+ "GROUP BY pt.authorId HAVING COUNT(pm.mention) >= 2";
+//				+ "GROUP BY pt.authorId, pm.mention"
+//				+ "HAVING COUNT() " ;
 		try{
 			Statement statement = conn.createStatement();
-			ResultSet rs = statement.executeQuery( query );
-			statement.close();
-			//fkt??
+			ResultSet rs = statement.executeQuery(selectPlebMentions);	//query );
+			
 			while (rs.next()) {
 				//long getid =
 			    r += //"#-#-#-#-#" + rs.getString("text")+ "\n";
-			    		"::" + rs.getLong("id")+ "\n";
+//			    		"::" + rs.getLong("pleb")+ "\n";
 			    		// + " " + rs.getInt("friend") +"\n";
+			    		":: " + rs.getLong("authorId") + " # " + rs.getInt("friendcnt") + "\n";
 			}
+			
+			statement.close();
 		} catch ( Exception e ) {
 			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
 			System.exit(0);
 		}
-		System.out.println(r);
+		System.out.println("result: " + r);
 		return r;
 	}
 	
@@ -397,7 +411,7 @@ public class Database {
 		try{
 			Statement statement = conn.createStatement();
 			ResultSet rs = statement.executeQuery("SELECT * FROM vip;");
-			statement.close();
+			
 			while (rs.next()) {
 				Vip vip = new Vip(rs.getString("screenName"), rs.getString("userName"));
 				
@@ -410,6 +424,8 @@ public class Database {
 				
 				vips.add(vip);
 			}
+			
+			statement.close();
 		} catch ( Exception e ) {
 			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
 			System.exit(0);
@@ -417,33 +433,41 @@ public class Database {
 		return vips;
 	}
 
-	public ArrayList<VipTweet> getAllVIPTweetsfromDB(){
-		ArrayList<VipTweet> vipTweets = new ArrayList<VipTweet>();
+	public ArrayList<Tweet> getAllTweetsfromDB(String table){
+		ArrayList<Tweet> ts = new ArrayList<Tweet>();
 		try{
 			Statement statement = conn.createStatement();
-			ResultSet resultSet = statement.executeQuery("SELECT * FROM vipTweets;");
-			statement.close();
-			while (resultSet.next()) {
-				VipTweet vipTweet = new VipTweet(resultSet.getLong("id"), resultSet.getString("text"),resultSet.getInt("sentimentPos"));
-
-				vipTweets.add(vipTweet);
+			ResultSet rs = statement.executeQuery("SELECT * FROM " + table + " ORDER BY id ASC");
+		
+			while (rs.next()) {
+				Tweet t = new Tweet(rs.getLong("authorId"),
+								rs.getString("idStr"),
+								rs.getString("text"),
+								rs.getInt("id"),
+								rs.getInt("sentimentPos"),
+								rs.getInt("sentimentNeg"));
+				
+				ts.add(t);
 			}
+			
+			statement.close();
 		} catch ( Exception e ) {
 			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
 			System.exit(0);
 		}
-		return vipTweets;
+		return ts;
 	}
+	
 
 	//todo make usable for pleb and vip
-	public void updateTweets(ArrayList<VipTweet> vipTweets, String table){
+	public void updateTweets(ArrayList<Tweet> tweets, String table){
 		String sql;
 		Statement stmt = null;
 
-		for(VipTweet vt : vipTweets){
+		for(Tweet t : tweets){
 			sql = "UPDATE "+table+" " +
-					"SET sentimentPos = "+vt.getPosSentiment()+", sentimentNeg = "+vt.getNegSentiment()+
-					" WHERE id ="+vt.getAuthorId();
+					"SET sentimentPos = "+t.getSentimentPos()+", sentimentNeg = "+t.getSentimentNeg()+
+					" WHERE id ="+t.getGeneratedId();
 			try {
 				stmt = conn.createStatement();
 				stmt.executeUpdate(sql);
@@ -453,25 +477,6 @@ public class Database {
 			}
 
 		}
-	}
-
-    //todo maybe merge with getAllVipTweets
-	public ArrayList<PlebTweet> getAllPlebTweetsfromDB(){
-		ArrayList<PlebTweet> pts = new ArrayList<PlebTweet>();
-		try{
-			Statement statement = conn.createStatement();
-			ResultSet rs = statement.executeQuery("SELECT * FROM plebTweets;");
-			statement.close();
-			while (rs.next()) {
-				PlebTweet pt = new PlebTweet(rs.getLong("authorId"), rs.getString("text"));
-				
-				pts.add(pt);
-			}
-		} catch ( Exception e ) {
-			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
-			System.exit(0);
-		}
-		return pts;
 	}
 	
 	public void cleanDB(){
@@ -519,6 +524,121 @@ public class Database {
 			preparedStatement.close();
 					
 			
+		}catch (SQLException e) {
+
+			System.out.println(e.getMessage());
+
+		} finally {
+
+			if (preparedStatement != null) {
+				try {
+					preparedStatement.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+
+	public void cleanPlebTweets(){
+		
+		PreparedStatement preparedStatement = null;
+
+		String removeUnnecessaryPlebTweets = "DELETE FROM plebTweets " +
+											"WHERE sentimentPos = 1 AND sentimentNeg = -1";
+		
+		
+		try {
+
+			preparedStatement = conn.prepareStatement(removeUnnecessaryPlebTweets);
+
+			preparedStatement.executeUpdate();
+			
+			preparedStatement.close();
+		}catch (SQLException e) {
+
+			System.out.println(e.getMessage());
+
+		} finally {
+
+			if (preparedStatement != null) {
+				try {
+					preparedStatement.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	public void cleanProtectedPleb(long tweetId){
+		
+		PreparedStatement preparedStatement = null;
+
+		String removeFromPlebTweets = "DELETE FROM plebTweets " +
+									  "WHERE id = " + tweetId;
+		
+		String removeFromPlebTweetMentions = "DELETE FROM plebTweetMentions " +
+											 "WHERE plebTweetId = " + tweetId;
+		
+		
+		try {
+
+			preparedStatement = conn.prepareStatement(removeFromPlebTweets);
+			preparedStatement.executeUpdate();
+			preparedStatement.close();
+			
+			System.out.println("deleted plebTweet");
+			
+			preparedStatement = conn.prepareStatement(removeFromPlebTweetMentions);
+			preparedStatement.executeUpdate();
+			preparedStatement.close();
+			
+			System.out.println("deleted plebTweetMention");
+		}catch (SQLException e) {
+
+			System.out.println(e.getMessage());
+
+		} finally {
+
+			if (preparedStatement != null) {
+				try {
+					preparedStatement.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	//tweeten uU auch ueber andere Vips (aber anscheinend nicht viele)
+	//stimmt removePlebTweet?
+	public void cleanPlebFriends(){
+		PreparedStatement preparedStatement = null;
+		String removeFromPlebFriends = "DELETE FROM plebTweets " +
+									  "WHERE friend = " + 0;
+		
+		String removePlebTweet = "DELETE pm, pt "
+			+ "FROM plebTweetMentions pm "
+			+ "JOIN plebTweets pt ON pm.plebTweetId = pt.id "
+			+ "JOIN plebFriends pf ON pt.authorId = pf.pleb "
+			+ "WHERE pf.friend = 0 "
+			+ "GROUP BY pt.authorId HAVING COUNT(pm.mention) < 2";
+		
+		try {
+			preparedStatement = conn.prepareStatement(removePlebTweet);
+			preparedStatement.executeUpdate();
+			preparedStatement.close();
+			
+			preparedStatement = conn.prepareStatement(removeFromPlebFriends);
+			preparedStatement.executeUpdate();
+			preparedStatement.close();
+			
+			System.out.println("deleted plebFriends");
 		}catch (SQLException e) {
 
 			System.out.println(e.getMessage());

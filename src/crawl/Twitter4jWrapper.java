@@ -5,8 +5,7 @@ import java.util.List;
 import java.util.Properties;
 
 import model.PlebFriend;
-import model.PlebTweet;
-import model.PlebTweetMention;
+import model.Tweet;
 import model.Vip;
 import model.VipTweet;
 import twitter4j.IDs;
@@ -223,7 +222,7 @@ public class Twitter4jWrapper {
 					VipTweet vipTweet = new VipTweet();
 					vipTweet.setIdStr(status.getId() + "");
 					vipTweet.setAuthorId(status.getUser().getId());
-					vipTweet.setAuthorName(status.getUser().getScreenName());
+					vipTweet.setScreenName(status.getUser().getScreenName());
 					vipTweet.setInReplyTo(status.getInReplyToUserId());
 
 					UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
@@ -261,12 +260,9 @@ public class Twitter4jWrapper {
 	}
 	
 
-	public void searchTweets(/*ArrayList<String[]> vipNickNames*/){
+	public void searchTweets(){
 		System.out.println("Search for mentions of VIPs");
-		//debug 5
-//		List<String[]> cut = vipNickNames.subList(0, 5);
-		ArrayList<PlebTweet> pt = new ArrayList<PlebTweet>();
-//		Database database = new Database();
+//		ArrayList<Tweet> pt = new ArrayList<Tweet>();
 		
 		//debug
 //		database.executeQuery("SELECT * FROM PlebTweets");
@@ -275,20 +271,6 @@ public class Twitter4jWrapper {
 		
 		ArrayList<Vip> vips = database.getAllVIPsfromDB();
 		
-//		for(String[] vipname : cut){
-//			String q = "";
-//			for(int i = 0; i<vipname.length-1; i++)
-//				q += vipname[i] + " OR ";
-//			q += vipname[vipname.length-1];
-//			//debug
-//			System.out.println("### vipname-query: " + q);
-//			//meh ([1])
-//        	//pt = 
-//			searchTweet(q, vipname[1]);
-//			//debug
-//       		//System.out.println("### found for query " + q);
-//		}
-		
 		for(Vip vip : vips){
 			String q = "@" + vip.getScreenName() + " OR #" + vip.getScreenName() + " OR \"" + vip.getUserName() + "\"";
 			
@@ -296,11 +278,6 @@ public class Twitter4jWrapper {
 			
 			searchTweet(q, vip.getScreenName());
 		}
-
-		
-//		for(PlebTweet p : pt){
-//			database.addPlebTweet(p);	
-//		}
 		
 		System.out.println("Finished search for mentions of VIPs");
 	}
@@ -312,7 +289,7 @@ public class Twitter4jWrapper {
 	 * @param searchTweets
 	 * @return 
 	 */
-	private /*ArrayList<PlebTweet>*/ void searchTweet(String q, String screenName/*, ArrayList<PlebTweet> pt*/){
+	private void searchTweet(String q, String screenName){
 		try {
 			   Query query = new Query(q);
 	           QueryResult result;
@@ -339,15 +316,12 @@ public class Twitter4jWrapper {
 	               for (Status tweet : tweets) {
 	            	   if(!tweet.isRetweet()){
 	            		   	count++;
-		                	PlebTweet plebTweet = new PlebTweet();
-//		                	PlebTweetMention plebTweetMention = new PlebTweetMention();
-//		                	
-//		                	plebTweetMention.setMention(database.getVipID(vipAtName));
+		                	Tweet plebTweet = new Tweet();
 		                	
 		                	//auto-inc ID
 			            	plebTweet.setAuthorId(tweet.getUser().getId());
 			            	plebTweet.setIdStr(String.valueOf(tweet.getId()));
-			            	plebTweet.setTweet(tweet.getText());
+			            	plebTweet.setText(tweet.getText());
 			            	plebTweet.setScreenName(tweet.getUser().getScreenName());
 			            	
 			            	//pt.add(plebTweet);
@@ -365,16 +339,33 @@ public class Twitter4jWrapper {
 	}
 	
 	public void crawlPlebFriends(int start_incl, int end_excl){
-	//	Database database = new Database();
 		System.out.println("Start crawling PlebFriends");
 		//crawlPlebFriends(pt.get(0));
 		
-		ArrayList<PlebTweet> pts = database.getAllPlebTweetsfromDB();
-		List<PlebTweet> pts_l = pts.subList(start_incl, end_excl);
+		ArrayList<Tweet> pts = database.getAllTweetsfromDB("plebTweets");
+		System.out.println("tocrawl (whole): " + pts.size());
+		List<Tweet> pts_l = pts.subList(start_incl, end_excl);
+
+		int cnt_protected = 0;
+		int cnt_repeats = 0;
 		
-		for(PlebTweet pt : pts_l){
+		int tillWait = 15;
+
+        int leftToShow = this.checkRateLimit("/users/show/:id");
+		for(Tweet pt : pts_l){
 			if(!database.isIDInDB(pt.getAuthorId(), "pleb", "plebFriends")){
-				if(this.checkRateLimit("/friends/ids") == 0){
+				
+				/*try {
+					RateLimitStatus status = twitter.getRateLimitStatus("friends").get("/friends/ids");
+					System.out.println("remaining: " + status.getRemaining() + "; reset in: " + status.getSecondsUntilReset());
+					if(status.getRemaining() < 1){
+						Thread.sleep(status.getSecondsUntilReset() * 1000);
+					}
+				} catch (TwitterException | InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}*/
+				/*if(this.checkRateLimit("/friends/ids") == 0){
 					try {
 						System.out.println("Sleep 15 minutes...");
 						Thread.sleep(901000);
@@ -383,20 +374,75 @@ public class Twitter4jWrapper {
 						e.printStackTrace();
 		//				database.closeConnection();
 					}
+				}*/
+				if(tillWait < 1){
+					try {
+						System.out.println("Sleep 15 minutes...");
+						Thread.sleep(901000);
+						tillWait = 15;
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+		//				database.closeConnection();
+					}
 				}
-				long[] friendList = this.getFriendsIDs(pt.getScreenName());
-		    	for(long friend : friendList){
-		    		if(database.isIDInDB(friend, "id", "vip")){
-		            	PlebFriend plebFriend = new PlebFriend();
-		            	plebFriend.setId(pt.getAuthorId());
-		        		plebFriend.setFriend(friend);
-		           		database.addPlebFriend(plebFriend);
-		    		}
-		    	}
+				
+				System.out.println("add: " + pt.getAuthorId());
+				long[] friendList;
+				try {
+					if(leftToShow <= 1){
+						leftToShow = this.checkRateLimit("/users/show/:id");
+						if(leftToShow <= 1){
+							try {
+								System.out.println("Sleep 15 minutes...");
+								Thread.sleep(901000);
+								leftToShow = this.checkRateLimit("/users/show/:id");
+							} catch (InterruptedException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+				//				database.closeConnection();
+							}
+						}
+					}
+					User user = twitter.showUser(pt.getAuthorId());
+					leftToShow--;
+					if(user.isProtected()){
+						System.out.println("User is protected :(");
+						cnt_protected++;
+						database.cleanProtectedPleb(pt.getGeneratedId());
+					} else {
+						friendList = this.getFriendsIDs(user.getScreenName());
+						tillWait--;
+						boolean hasVipFriend = false;
+						for(long friend : friendList){
+				    		if(database.isIDInDB(friend, "id", "vip")){
+				            	PlebFriend plebFriend = new PlebFriend();
+				            	plebFriend.setId(pt.getAuthorId());
+				        		plebFriend.setFriend(friend);
+				           		database.addPlebFriend(plebFriend);
+				           		hasVipFriend = true;
+				    		}
+				    	}
+						if(!hasVipFriend){
+							PlebFriend plebFriend = new PlebFriend();
+			            	plebFriend.setId(pt.getAuthorId());
+			        		plebFriend.setFriend(0);
+			           		database.addPlebFriend(plebFriend);
+						}
+					}
+				} catch (TwitterException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		    	
+			} else { 
+				System.out.println("Pleb was in DB :" + pt.getAuthorId()); 
+				cnt_repeats++; 
 			}
 		}
 		
-		System.out.println("Finished crawling PlebFriends");
+		System.out.println("Finished crawling PlebFriends " + start_incl + " to " + (end_excl-1)
+				+"\n -- with " + cnt_repeats + " repeats and " + cnt_protected + "protected accounts");
 		//debug
 		//database.executeQuery("SELECT * FROM plebTweets;");
 	//	database.closeConnection();
