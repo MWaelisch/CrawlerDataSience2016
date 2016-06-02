@@ -13,16 +13,18 @@ public class Main {
 		Properties config = getConfig();
 		Database database = new Database();
 		Twitter4jWrapper wrapper = new Twitter4jWrapper(config, database);
-		CSVParser parser = new CSVParser(config);
-		ArrayList<String[]> vipNickNames = parser.parseVipNickNames();
-		ArrayList<String> vipNames = parser.getVipNames(vipNickNames);
-		System.out.println("Vip Listen erfolgreich erstellt");
+//		CSVParser parser = new CSVParser(config);
+//		ArrayList<String[]> vipNickNames = parser.parseVipNickNames();
+//		ArrayList<String> vipNames = parser.getVipNames(vipNickNames);
+//		System.out.println("Vip Listen erfolgreich erstellt");
 //		wrapper.checkRateLimit("/friends/ids");
 //		wrapper.crawlVips(vipNames);
 //		wrapper.crawlVipTweets(vipNames);
 //		wrapper.searchTweets(vipNickNames);	
 //		database.getAllTweetsfromDB("plebTweets");
-//		wrapper.crawlPlebFriends(0, 5);
+		wrapper.crawlPlebFriends(2760, 2880);
+//		database.executeQuery("");	//"SELECT * FROM plebFriends GROUP BY pleb");
+		//databse.cleanPlebFriends();	//after getting all!!
 		database.closeConnection();
 	}
 	

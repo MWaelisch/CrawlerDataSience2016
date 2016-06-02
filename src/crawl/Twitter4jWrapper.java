@@ -348,11 +348,24 @@ public class Twitter4jWrapper {
 
 		int cnt_protected = 0;
 		int cnt_repeats = 0;
+		
+		int tillWait = 15;
 
         int leftToShow = this.checkRateLimit("/users/show/:id");
 		for(Tweet pt : pts_l){
 			if(!database.isIDInDB(pt.getAuthorId(), "pleb", "plebFriends")){
-				if(this.checkRateLimit("/friends/ids") == 0){
+				
+				/*try {
+					RateLimitStatus status = twitter.getRateLimitStatus("friends").get("/friends/ids");
+					System.out.println("remaining: " + status.getRemaining() + "; reset in: " + status.getSecondsUntilReset());
+					if(status.getRemaining() < 1){
+						Thread.sleep(status.getSecondsUntilReset() * 1000);
+					}
+				} catch (TwitterException | InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}*/
+				/*if(this.checkRateLimit("/friends/ids") == 0){
 					try {
 						System.out.println("Sleep 15 minutes...");
 						Thread.sleep(901000);
@@ -361,7 +374,19 @@ public class Twitter4jWrapper {
 						e.printStackTrace();
 		//				database.closeConnection();
 					}
+				}*/
+				if(tillWait < 1){
+					try {
+						System.out.println("Sleep 15 minutes...");
+						Thread.sleep(901000);
+						tillWait = 15;
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+		//				database.closeConnection();
+					}
 				}
+				
 				System.out.println("add: " + pt.getAuthorId());
 				long[] friendList;
 				try {
@@ -387,6 +412,7 @@ public class Twitter4jWrapper {
 						database.cleanProtectedPleb(pt.getGeneratedId());
 					} else {
 						friendList = this.getFriendsIDs(user.getScreenName());
+						tillWait--;
 						boolean hasVipFriend = false;
 						for(long friend : friendList){
 				    		if(database.isIDInDB(friend, "id", "vip")){
@@ -415,7 +441,7 @@ public class Twitter4jWrapper {
 			}
 		}
 		
-		System.out.println("Finished crawling PlebFriends " + start_incl + " to " + end_excl
+		System.out.println("Finished crawling PlebFriends " + start_incl + " to " + (end_excl-1)
 				+"\n -- with " + cnt_repeats + " repeats and " + cnt_protected + "protected accounts");
 		//debug
 		//database.executeQuery("SELECT * FROM plebTweets;");
