@@ -1,5 +1,7 @@
 package model;
 
+import java.util.ArrayList;
+
 public class Vip {
 	
 	private long id;
@@ -8,6 +10,7 @@ public class Vip {
 	private int followerCount;
 	private long[] friends;
 	private String profilePicture;
+	private ArrayList<VipTweet> tweets; 
 	
 	public Vip(){}
 	
@@ -62,6 +65,16 @@ public class Vip {
 
 	public void setProfilePicture(String profilePicture) {
 		this.profilePicture = profilePicture;
+	}
+
+	public ArrayList<VipTweet> getTweets() {
+		return tweets;
+	}
+
+	public void setTweets(ArrayList<VipTweet> tweets) {
+		this.tweets = tweets;
 	}	
+	
+	
 
 }

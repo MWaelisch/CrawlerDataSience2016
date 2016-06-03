@@ -74,6 +74,7 @@ public class Tweet {
 		this.sentimentNeg = sentiScore[1];
 	}
 
+	//TODO can this be deleted ?
 	public String getScreenName() {
 		return screenName;
 	}

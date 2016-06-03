@@ -7,18 +7,6 @@ public class VipTweet extends Tweet{
 	private long[] mentions;
 	private long retweetOrigin;
 
-
-	public VipTweet(){}
-
-	public VipTweet(long authorId, String text){
-		super(authorId, text);
-	}
-
-	//for debugging
-	public VipTweet(long authorId, String text, int posSentiment){
-		super(authorId, text, posSentiment);
-	}
-
 	public long getInReplyTo() {
 		return inReplyTo;
 	}

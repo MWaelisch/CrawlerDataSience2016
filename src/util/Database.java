@@ -413,14 +413,13 @@ public class Database {
 			ResultSet rs = statement.executeQuery("SELECT * FROM vip;");
 			
 			while (rs.next()) {
-				Vip vip = new Vip(rs.getString("screenName"), rs.getString("userName"));
+				Vip vip = new Vip();
 				
-				//(id, screenName, userName, followerCount,profilePicture)
-//				vip.setId(rs.getLong("id"));
-//				vip.setScreenName(rs.getString("screenName"));
-//				vip.setUserName(rs.getString("userName"));
-//				vip.setFollowerCount(rs.getInt("followerCount"));
-//				vip.setProfilePicture(rs.getString("profilePicture"));
+				vip.setId(rs.getLong("id"));
+				vip.setScreenName(rs.getString("screenName"));
+				vip.setUserName(rs.getString("userName"));
+				vip.setFollowerCount(rs.getInt("followerCount"));
+				vip.setProfilePicture(rs.getString("profilePicture"));
 				
 				vips.add(vip);
 			}
@@ -440,12 +439,13 @@ public class Database {
 			ResultSet rs = statement.executeQuery("SELECT * FROM " + table + " ORDER BY id ASC");
 		
 			while (rs.next()) {
-				Tweet t = new Tweet(rs.getLong("authorId"),
-								rs.getString("idStr"),
-								rs.getString("text"),
-								rs.getInt("id"),
-								rs.getInt("sentimentPos"),
-								rs.getInt("sentimentNeg"));
+				Tweet t = new Tweet();
+				t.setAuthorId(rs.getLong("authorId"));
+				t.setIdStr(rs.getString("idStr"));
+				t.setText(rs.getString("text"));
+				t.setGeneratedId(rs.getInt("id"));
+				t.setSentimentPos(rs.getInt("sentimentPos"));
+				t.setSentimentNeg(rs.getInt("sentimentNeg"));
 				
 				ts.add(t);
 			}
@@ -456,6 +456,80 @@ public class Database {
 			System.exit(0);
 		}
 		return ts;
+	}
+	
+	public ArrayList<VipTweet> getVipTweets(long authorId){
+		ArrayList<VipTweet> vipTweets = new ArrayList<VipTweet>();
+		try{
+			Statement statement = conn.createStatement();
+			ResultSet rs = statement.executeQuery("SELECT * FROM vipTweets WHERE authorId=" + authorId);
+		
+			while (rs.next()) {
+				VipTweet t = new VipTweet();
+				t.setAuthorId(rs.getLong("authorId"));
+				t.setIdStr(rs.getString("idStr"));
+				t.setText(rs.getString("text"));
+				t.setGeneratedId(rs.getInt("id"));
+				t.setSentimentPos(rs.getInt("sentimentPos"));
+				t.setSentimentNeg(rs.getInt("sentimentNeg"));
+				t.setInReplyTo(rs.getInt("inReplyTo"));
+				t.setRetweetOrigin(rs.getInt("retweetOrigin"));
+				vipTweets.add(t);
+			}
+		
+			
+			for(VipTweet tweet : vipTweets){
+				
+				rs = statement.executeQuery("SELECT COUNT(*) as count FROM VipTweetMentions WHERE vipTweetId=" + tweet.getGeneratedId());
+				rs.next();
+				int count = rs.getInt("count");
+				
+				
+				
+				long[] mentions = new long[count]; 
+				rs = statement.executeQuery("SELECT * FROM VipTweetMentions WHERE vipTweetId=" + tweet.getGeneratedId());
+				int i=0;
+				while(rs.next()){
+					mentions[i] = rs.getLong("mention");
+					i++;
+				}
+				tweet.setMentions(mentions);	
+			}
+			statement.close();
+		} catch ( Exception e ) {
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			System.exit(0);
+		}
+		return vipTweets;
+	}
+	
+	public long[] getVipFriends(long vipId){
+		
+		try{
+			
+			Statement statement = conn.createStatement();
+			
+			ResultSet rs = statement.executeQuery("SELECT COUNT(*) as count FROM vipFriends WHERE vip=" + vipId);
+			rs.next();
+			int count = rs.getInt("count");
+			
+			long[] vipFriends=  new long[count];
+			
+			rs = statement.executeQuery("SELECT * FROM vipFriends WHERE vip=" + vipId);
+		
+			int i = 0;
+			while (rs.next()) {
+				vipFriends[i] = rs.getLong("friend");
+				i++;
+			}
+			
+			statement.close();
+			return vipFriends;
+		} catch ( Exception e ) {
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			System.exit(0);
+		}
+		return null;
 	}
 	
 
@@ -482,19 +556,21 @@ public class Database {
 		
 		PreparedStatement preparedStatement = null;
 
+		//Lösche alle viptweets die nicht bezug auf einen anderen vip nehmen
 		String removeUnnecessaryVipTweets = "DELETE FROM vipTweets " +
 											"WHERE retweetOrigin NOT IN (SELECT id FROM vip) " + 
 											"AND inReplyTo NOT IN (SELECT id FROM vip)" +
 											"AND NOT EXISTS (SELECT * FROM vipTweetMentions,vip WHERE vipTweetId=vipTweets.id AND mention=vip.id)";
 		
+		//lösche alle mentions, zu denen der tweet nichtmehr existiert-> siehe removeUnnecessaryVipTweets
+		//und alle unnötigen mentions, also mentions die nicht auf einen vip verweisen
 		String removeUnnecessaryVipTweetMentions="DELETE FROM vipTweetMentions " +
 												 "WHERE vipTweetid NOT IN (SELECT id FROM vipTweets)" +
 												 "OR mention NOT IN (SELECT id FROM vip)";
 
+		//lösche alle freunde von vips die selbst keine vips sind
 		String removeUnnecessaryVipFriends = "DELETE FROM vipFriends " +
 											 "WHERE friend NOT IN (SELECT id FROM vip)";
-		
-		String removeUnnecessaryPlebFriends = "DELETE FROM plebFriends WHERE friend NOT IN (SELECT id FROM vip)";
 		
 		try {
 
@@ -515,13 +591,6 @@ public class Database {
 			preparedStatement.executeUpdate();
 			
 			preparedStatement.close();
-			
-			preparedStatement = conn.prepareStatement(removeUnnecessaryPlebFriends);
-			
-			preparedStatement.executeUpdate();
-			
-			preparedStatement.close();
-					
 			
 		}catch (SQLException e) {
 
