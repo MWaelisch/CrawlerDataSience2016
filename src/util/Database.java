@@ -23,7 +23,7 @@ public class Database {
 			// create a database connection
 			Properties properties = new Properties();
 			properties.setProperty("PRAGMA foreign_keys", "ON");
-			conn = DriverManager.getConnection("jdbc:sqlite:resources/twitterData_vips_viptweets_plebTweets+posneg.db",properties);
+			conn = DriverManager.getConnection("jdbc:sqlite:resources/twitterData.db",properties);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -459,7 +459,6 @@ public class Database {
 	}
 	
 
-	//todo make usable for pleb and vip
 	public void updateTweets(ArrayList<Tweet> tweets, String table){
 		String sql;
 		Statement stmt = null;
@@ -542,13 +541,12 @@ public class Database {
 	}
 	
 
-	public void cleanPlebTweets(){
+	public void cleanNeutralSentiScorePlebTweets(){
 		
 		PreparedStatement preparedStatement = null;
 
 		String removeUnnecessaryPlebTweets = "DELETE FROM plebTweets " +
 											"WHERE sentimentPos = 1 AND sentimentNeg = -1";
-		
 		
 		try {
 
@@ -628,6 +626,23 @@ public class Database {
 			+ "JOIN plebFriends pf ON pt.authorId = pf.pleb "
 			+ "WHERE pf.friend = 0 "
 			+ "GROUP BY pt.authorId HAVING COUNT(pm.mention) < 2";
+		
+//		DELETE plebTweets, PlebTweetMentions,plebFriends FROM plebTweets JOIN plebTweetmentions ON plebTweetId = plebTweets.id JOIN plebFriends ON authorId = pleb  WHErE authorId IN (SELECT authorId
+//        FROM plebTweetMentions pm 
+//        JOIN plebTweets pt ON pm.plebTweetId = pt.id 
+//        JOIN plebFriends pf ON pt.authorId = pf.pleb 
+//        WHERE pf.friend = 0 
+//        GROUP BY pt.authorId HAVING COUNT(pm.mention) >= 2) AND NOT text LIKE '%Youtube%'ORDER BY authorId
+//        
+//        
+//DELETE FROM plebTweets WHErE authorId IN (SELECT authorId
+//    FROM plebTweetMentions pm 
+//    JOIN plebTweets pt ON pm.plebTweetId = pt.id 
+//    JOIN plebFriends pf ON pt.authorId = pf.pleb 
+//    WHERE pf.friend=0 
+//    GROUP BY pt.authorId HAVING COUNT(pm.mention) >= 2) AND NOT text LIKE '%Youtube%';
+//    
+//DELETE FROM plebTweetMentions WHERE plebTweetId NOT IN (SELECT id FROM plebTweets);
 		
 		try {
 			preparedStatement = conn.prepareStatement(removePlebTweet);

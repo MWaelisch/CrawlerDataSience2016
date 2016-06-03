@@ -1,10 +1,15 @@
 package postProcessing;
 
+import java.util.ArrayList;
+
+import model.Tweet;
 import uk.ac.wlv.sentistrength.*;
+import util.Database;
 
 public class SentiStrengthWrapper {
 	
 	private SentiStrength sentiStrength;
+	private Database database;
 	
 	public SentiStrengthWrapper() {
 		this.sentiStrength = new SentiStrength(); 
@@ -19,8 +24,27 @@ public class SentiStrengthWrapper {
 		return new Integer[]{Integer.parseInt(stringResult[0]),Integer.parseInt(stringResult[1])};
 	}
 
-	public void testSenti(){
-		System.out.println(sentiStrength.computeSentimentScores("Das wetter ist schön.")); 
-		System.out.println(sentiStrength.computeSentimentScores("I liebe hunde nicht ich hasse sie.")); 
+
+	public void calculateSentiScore(String table){
+		
+		ArrayList<Tweet> tweets = database.getAllTweetsfromDB(table);
+	      //calculate sentiScore for each tweet
+		  Integer[] sentiScore;
+	      for(Tweet t : tweets){
+	    	  sentiScore = getSentiScores(t.getText());
+	          t.setSentiScore(sentiScore);
+	      }
+	      
+	      //write sentiScore in vipTweets table in db
+	      database.updateTweets(tweets,table);
+	}
+	
+
+	public Database getDatabase() {
+		return database;
+	}
+
+	public void setDatabase(Database database) {
+		this.database = database;
 	}
 }
