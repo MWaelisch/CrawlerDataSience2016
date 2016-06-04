@@ -7,6 +7,7 @@ import java.util.Map;
 
 import java_cup.runtime.virtual_parse_stack;
 import model.Vip;
+import model.VipMatrix;
 import util.Database;
 
 public class CrunchMain {
@@ -38,37 +39,9 @@ public class CrunchMain {
 		}
 		System.out.println(vipIdMap);
 
-		//calculate RelationRow for a VIP
-		int[][] vipRelationMatrix = new int[vips.size()][vips.size()];
 
-		for(int i = 0; i < vips.size(); i++){
-			if(i >= DEBUGGINGCOUNT){
-				break;
-			}
-			for(long friend : vips.get(i).getFriends()){
-				if(vipIdMap.containsKey(friend)){
-					vipRelationMatrix[i][vipIdMap.get(friend)] += FRIENDSHIPVALUE;
-				}
-			}
-		}
-
-		System.out.println(Arrays.toString(vipRelationMatrix[2]));
-		System.out.println(Arrays.toString(vipRelationMatrix[3]));
-
-		//combine friend-Relations
-		for(int row =0; row<vips.size(); row++){
-			for(int col=0; col<vips.size(); col++){
-				if(col<row){
-					vipRelationMatrix[row][col] += vipRelationMatrix[col][row];
-					vipRelationMatrix[col][row]  = vipRelationMatrix[row][col];
-				}
-			}
-		}
-
-		System.out.println("Combined");
-		System.out.println(Arrays.toString(vipRelationMatrix[2]));
-		System.out.println(Arrays.toString(vipRelationMatrix[3]));
-
+		VipMatrix vipMatrix = new VipMatrix(vips,vipIdMap);
+		vipMatrix.calculateFriendships();
 
 		System.out.println("Finished");
 	}
