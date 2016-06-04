@@ -11,18 +11,14 @@ import model.VipMatrix;
 import util.Database;
 
 public class CrunchMain {
-	private static int FRIENDSHIPVALUE = 10;
-	private static int POSTINGVALUE = 1;
-	private static int DEBUGGINGCOUNT = 5;
-
 
 	public static void main(String [] args){
-		
+
 
 		Database database = new Database();
 		//For testing usage of getNVips
 // 		ArrayList<Vip> vips = database.getAllVIPsfromDB();
-		ArrayList<Vip> vips = database.getNVipsFromDB(7);
+		ArrayList<Vip> vips = database.getNVipsFromDB(4);
 
 
 		Map<Long, Integer> vipIdMap = new HashMap<>();
@@ -42,6 +38,10 @@ public class CrunchMain {
 
 		VipMatrix vipMatrix = new VipMatrix(vips,vipIdMap);
 		vipMatrix.calculateFriendships();
+		vipMatrix.calculateMentions();
+
+		vipMatrix.writeToCsv();
+
 
 		System.out.println("Finished");
 	}
