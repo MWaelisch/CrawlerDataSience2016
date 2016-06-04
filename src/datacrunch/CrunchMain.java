@@ -32,9 +32,9 @@ public class CrunchMain {
 			vip.setFriends(database.getVipFriends(vip.getId()));
 			count++;
 
-			if(count == DEBUGGINGCOUNT){
-				break;
-			}
+//			if(count == DEBUGGINGCOUNT){
+//				break;
+//			}
 			System.out.println(count);
 		}
 		System.out.println(vipIdMap);
