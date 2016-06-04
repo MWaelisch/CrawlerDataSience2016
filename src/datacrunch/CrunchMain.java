@@ -18,8 +18,11 @@ public class CrunchMain {
 
 	public static void main(String [] args){
 		
+
 		Database database = new Database();
-		ArrayList<Vip> vips = database.getAllVIPsfromDB();
+		//For testing usage of getNVips
+// 		ArrayList<Vip> vips = database.getAllVIPsfromDB();
+		ArrayList<Vip> vips = database.getNVipsFromDB(7);
 
 
 		Map<Long, Integer> vipIdMap = new HashMap<>();
@@ -32,9 +35,6 @@ public class CrunchMain {
 			vip.setFriends(database.getVipFriends(vip.getId()));
 			count++;
 
-//			if(count == DEBUGGINGCOUNT){
-//				break;
-//			}
 			System.out.println(count);
 		}
 		System.out.println(vipIdMap);

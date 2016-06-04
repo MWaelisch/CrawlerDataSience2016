@@ -405,7 +405,38 @@ public class Database {
 		System.out.println("result: " + r);
 		return r;
 	}
-	
+
+	public ArrayList<Vip> getNVipsFromDB(int numberOfVips){
+		ArrayList<Vip> vips = new ArrayList<Vip>();
+		try{
+			Statement statement = conn.createStatement();
+			ResultSet rs = statement.executeQuery("SELECT * FROM vip ORDER BY id ASC;");
+			int count = 0;
+			while (rs.next()) {
+				Vip vip = new Vip();
+
+				vip.setId(rs.getLong("id"));
+				vip.setScreenName(rs.getString("screenName"));
+				vip.setUserName(rs.getString("userName"));
+				vip.setFollowerCount(rs.getInt("followerCount"));
+				vip.setProfilePicture(rs.getString("profilePicture"));
+
+				vips.add(vip);
+				count++;
+				if(count == numberOfVips){
+					break;
+				}
+
+			}
+
+			statement.close();
+		} catch ( Exception e ) {
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			System.exit(0);
+		}
+		return vips;
+	}
+
 	public ArrayList<Vip> getAllVIPsfromDB(){
 		ArrayList<Vip> vips = new ArrayList<Vip>();
 		try{
