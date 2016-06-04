@@ -2,7 +2,6 @@ package model;
 
 public class VipTweet extends Tweet{
 
-	//todo authorId sometimes also reflects the tweet Id
 	private long inReplyTo;
 	private long[] mentions;
 	private long retweetOrigin;

@@ -410,7 +410,7 @@ public class Database {
 		ArrayList<Vip> vips = new ArrayList<Vip>();
 		try{
 			Statement statement = conn.createStatement();
-			ResultSet rs = statement.executeQuery("SELECT * FROM vip;");
+			ResultSet rs = statement.executeQuery("SELECT * FROM vip ORDER BY id ASC;");
 			
 			while (rs.next()) {
 				Vip vip = new Vip();
