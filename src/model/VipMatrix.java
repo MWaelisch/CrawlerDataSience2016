@@ -13,10 +13,10 @@ import java.util.Map;
  */
 public class VipMatrix {
 
-    private static int FRIENDSHIPVALUE = 10;
+    private static int FRIENDSHIPVALUE = 100;
     private static int MENTIONVALUE = 2;
-    private static int REPLYVALUE = 2;
-    private static int RETWEETVALUE = 2;
+    private static int REPLYVALUE = 10;
+    private static int RETWEETVALUE = 20;
 
     private Map<Long, Integer> vipIdMap;
     private ArrayList<Vip> vips;

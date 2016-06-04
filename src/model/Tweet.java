@@ -68,11 +68,14 @@ public class Tweet {
 	public void setSentimentNeg(int sentimentNeg) {
 		this.sentimentNeg = sentimentNeg;
 	}
+
 	public int getSentiment(){
-		if(sentimentPos >= Math.abs(sentimentNeg)){
-			return sentimentPos;
+		if(sentimentPos > Math.abs(sentimentNeg)){
+			return sentimentPos^2;
+		}else if (sentimentPos < Math.abs(sentimentNeg)){
+			return sentimentNeg^2;
 		}else{
-			return sentimentNeg;
+			return 1;
 		}
 	}
 

@@ -17,8 +17,8 @@ public class CrunchMain {
 
 		Database database = new Database();
 		//For testing usage of getNVips
-// 		ArrayList<Vip> vips = database.getAllVIPsfromDB();
-		ArrayList<Vip> vips = database.getNVipsFromDB(4);
+ 		ArrayList<Vip> vips = database.getAllVIPsfromDB();
+//		ArrayList<Vip> vips = database.getNVipsFromDB(4);
 
 
 		Map<Long, Integer> vipIdMap = new HashMap<>();
@@ -30,8 +30,7 @@ public class CrunchMain {
 			vip.setTweets(database.getVipTweets(vip.getId()));
 			vip.setFriends(database.getVipFriends(vip.getId()));
 			count++;
-
-			System.out.println(count);
+			System.out.println("Creating VIP no "+count);
 		}
 		System.out.println(vipIdMap);
 
