@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Properties;
 
+import postProcessing.SentiStrengthWrapper;
 import util.*;
 
 public class Main {
@@ -13,29 +14,44 @@ public class Main {
 	public static void main(String[] args) {
 		Properties config = getConfig();
 		try {
+			//create subdirectories for the different databases
+			Utility.makeDir("raw");
+			Utility.makeDir("cleaned");
 			
 		    if(args.length == 0 || args.length == 1)
 		    {
 		    	System.out.println("!!WRONG USAGE!!");
-		        System.out.println("Proper Usage is: java -jar testScience.jar [command] [parameter]");
+		    	//TODO explain proper usage
+		        System.out.println("Proper Usage is: ....... ");
 		        System.exit(0);
 		    }
-			// crawl all vip data
+		    
+			// crawl all vip data and clean the database
 			// example call: java -jar jarName crawlVips pathToVipCsv
 			if (args[0].equals("crawlVips")) {
-				Database database = new Database("vipraw.db");
+				Database database = new Database("raw/vips_raw.db");
 				Twitter4jWrapper wrapper = new Twitter4jWrapper(config, database);
 				CSVParser parser = new CSVParser(args[1]);
 				ArrayList<String> vipNames = parser.parseVips();
 				wrapper.crawlVips(vipNames);
+				wrapper.crawlVipTweets(vipNames);
+				//TODO copy database to save it
+				database.cleanVips();
 				database.closeConnection();
+				SentiStrengthWrapper sentiStrength = new SentiStrengthWrapper();
+				sentiStrength.setDatabase(database);
+				sentiStrength.calculateSentiScore("vipTweets");
+			}
+			
+			
+			if(args[0].equals("crawlPlebs")){
+				
 			}
 
 			// ArrayList<String[]> vipNickNames = parser.parseVipNickNames();
 			// System.out.println("Vip Listen erfolgreich erstellt");
 			// wrapper.checkRateLimit("/friends/ids");
 
-			// wrapper.crawlVipTweets(vipNames);
 			// wrapper.searchTweets(vipNickNames);
 			// database.getAllTweetsfromDB("plebTweets");
 			// wrapper.crawlPlebFriends(2760, 2880);

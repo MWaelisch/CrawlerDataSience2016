@@ -168,32 +168,7 @@ public class ScriptRunner {
 						conn.commit();
 					}
 
-					ResultSet rs = statement.getResultSet();
-					if (hasResults && rs != null) {
-						ResultSetMetaData md = rs.getMetaData();
-						int cols = md.getColumnCount();
-						for (int i = 0; i < cols; i++) {
-							String name = md.getColumnLabel(i);
-							print(name + "\t");
-						}
-						println("");
-						while (rs.next()) {
-							for (int i = 1; i <= cols; i++) {
-								String value = rs.getString(i);
-								print(value + "\t");
-							}
-							println("");
-						}
-					}
-
 					command = null;
-					try {
-						if (rs != null) {
-							rs.close();
-						}
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
 					try {
 						if (statement != null) {
 							statement.close();

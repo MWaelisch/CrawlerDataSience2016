@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -27,20 +28,17 @@ public class Database {
 		Class.forName(sDriverName);
 		// create a database connection
 		// for usage in eclipse
-		// conn =
-		// DriverManager.getConnection("jdbc:sqlite:resources/twitterData.db",properties);
+		// conn = DriverManager.getConnection("jdbc:sqlite:resources/twitterData.db",properties);
 
 		// for usage with jar file
 		File file = new File(databaseFile);
 		if (!file.exists()) {
 			conn = DriverManager.getConnection("jdbc:sqlite:./" + databaseFile);
-			// load the init.sql script from JAR
-			InputStreamReader isr = new InputStreamReader(getClass().getResourceAsStream("/resources/init.sql"));
-			// run it on the database to create the whole structure, tables and
 			// so on
 			ScriptRunner runner = new ScriptRunner(conn, false, false);
-			runner.runScript(new BufferedReader(new FileReader("init.sql")));
-			isr.close();
+			InputStream in = getClass().getResourceAsStream("/init.sql"); 
+			BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+			runner.runScript(reader);
 		} else {
 			conn = DriverManager.getConnection("jdbc:sqlite:./" + databaseFile);
 		}
@@ -577,6 +575,7 @@ public class Database {
 
 	public void cleanVips() {
 
+		System.out.println("Cleaning Vip Data in Database");
 		PreparedStatement preparedStatement = null;
 
 		// Lösche alle viptweets die nicht bezug auf einen anderen vip nehmen
@@ -613,6 +612,8 @@ public class Database {
 			preparedStatement.executeUpdate();
 
 			preparedStatement.close();
+			
+			System.out.println("Database Cleaned");
 
 		} catch (SQLException e) {
 

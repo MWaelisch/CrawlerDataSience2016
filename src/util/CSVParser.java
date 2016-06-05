@@ -55,7 +55,7 @@ public class CSVParser {
 				String[] namesSplit = tokens[0].split(",");
 				String atName = namesSplit[1].trim();
 				atName = atName.substring(1,atName.length()-1);
-				//System.out.println(atName);
+//				System.out.println(atName);
 				names.add(atName);
 			}
 

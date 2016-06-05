@@ -135,17 +135,15 @@ public class Twitter4jWrapper {
         try {
             ResponseList<User> users = twitter.lookupUsers(screenNames);
             for (User user : users) {
-                    System.out.println("@" + user.getScreenName());
-                    System.out.println("ID " + user.getId());
-                    System.out.println("Name " + user.getName());
-                    System.out.println("FollowerCount " + user.getFollowersCount());   
+//                    System.out.println("@" + user.getScreenName());
+//                    System.out.println("ID " + user.getId());
+//                    System.out.println("Name " + user.getName());
+//                    System.out.println("FollowerCount " + user.getFollowersCount());   
 //                    System.out.println("Profilepicturemini " + user.getMiniProfileImageURL());
 //                    System.out.println("Profilepicture bigger" + user.getBiggerProfileImageURL());
 //                    System.out.println("Profilepicture" + user.getOriginalProfileImageURL());
-                    System.out.println("Profilepicture" + user.getProfileImageURL());
+//                    System.out.println("Profilepicture" + user.getProfileImageURL());
                   
-                    
-                    
                     Vip vip = new Vip();
                     vip.setId(user.getId());
                     vip.setScreenName(user.getScreenName());
@@ -213,7 +211,6 @@ public class Twitter4jWrapper {
 				System.out.println("Finished crawling Tweets for " + vip);
 				
 				System.out.println("Saving Tweets for " + vip);
-	//			Database database = new Database();
 				for (Status status : statuses) {
 					VipTweet vipTweet = new VipTweet();
 					vipTweet.setIdStr(status.getId() + "");
@@ -244,7 +241,6 @@ public class Twitter4jWrapper {
 					database.addVipTweet(vipTweet);
 				}
 				System.out.println("Finished Saving Tweets for " + vip);
-				//	database.closeConnection();
 			}
 
 		} catch (TwitterException | InterruptedException te) {
