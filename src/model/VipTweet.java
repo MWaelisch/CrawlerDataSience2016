@@ -3,7 +3,7 @@ package model;
 public class VipTweet extends Tweet{
 
 	private long inReplyTo;
-	private long[] mentions;
+
 	private long retweetOrigin;
 
 	public long getInReplyTo() {
@@ -11,12 +11,6 @@ public class VipTweet extends Tweet{
 	}
 	public void setInReplyTo(long inReplyTo) {
 		this.inReplyTo = inReplyTo;
-	}
-	public long[] getMentions() {
-		return mentions;
-	}
-	public void setMentions(long[] mentions) {
-		this.mentions = mentions;
 	}
 	public long getRetweetOrigin() {
 		return retweetOrigin;

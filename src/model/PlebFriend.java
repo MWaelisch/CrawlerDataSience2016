@@ -1,5 +1,7 @@
 package model;
 
+
+//Todo integration Pleb
 public class PlebFriend {
 	private long id;
 	private long friend;

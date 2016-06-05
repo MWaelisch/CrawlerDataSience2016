@@ -44,11 +44,6 @@ public class VipMatrix {
             }
         }
 
-        //debugging
-        System.out.println(Arrays.toString(vipRelationMatrix[2]));
-        System.out.println(Arrays.toString(vipRelationMatrix[3]));
-
-
         //combine friend-Relations
         for(int row =0; row<vips.size(); row++){
             for(int col=0; col<vips.size(); col++){
@@ -58,11 +53,6 @@ public class VipMatrix {
                 }
             }
         }
-
-        //debugging
-        System.out.println("Combined");
-        System.out.println(Arrays.toString(vipRelationMatrix[2]));
-        System.out.println(Arrays.toString(vipRelationMatrix[3]));
 
     }
 

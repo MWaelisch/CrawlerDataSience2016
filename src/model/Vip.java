@@ -2,6 +2,8 @@ package model;
 
 import java.util.ArrayList;
 
+
+//todo make extends from Pleb
 public class Vip {
 	
 	private long id;
@@ -13,11 +15,6 @@ public class Vip {
 	private ArrayList<VipTweet> tweets; 
 	
 	public Vip(){}
-	
-	public Vip(String screenName, String UserName){
-		this.screenName = screenName;
-		this.UserName = UserName;
-	}
 
 	public long getId() {
 		return id;

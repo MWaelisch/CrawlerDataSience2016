@@ -7,6 +7,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Properties;
 
 import model.*;
@@ -276,7 +278,6 @@ public class Database {
 		}
 	}
 
-	
 	private void addPlebTweetData(Tweet plebTweet){
 		PreparedStatement preparedStatement = null;
 
@@ -372,7 +373,7 @@ public class Database {
 		return false;
 	}
 	
-	//debug
+	//debugging and testing
 	public String executeQuery(String query){
 		String r = "";
 //		String selectPlebMentions =  "SELECT authorId, COUNT(pm.mention) AS friendcnt "//"DELETE pm, pt "
@@ -459,11 +460,126 @@ public class Database {
 		return vips;
 	}
 
-	public ArrayList<Tweet> getAllTweetsfromDB(String table){
+    public ArrayList<Pleb> getAllPlebsfromDB(){
+        HashMap<Long,Pleb> plebMap = new HashMap<>();
+        ArrayList<Long> mentionsList = new ArrayList<Long>();
+        int tweetId;
+        long plebId;
+        try{
+            Statement plebStatement = conn.createStatement();
+            Statement tweetStatement = conn.createStatement();
+
+            ResultSet rsPleb = plebStatement.executeQuery("SELECT * FROM plebTweets ORDER BY authorId ASC;");
+
+            while (rsPleb.next()) {
+                plebId = rsPleb.getLong("authorId");
+
+                //check for all mentions in this tweet
+                tweetId = rsPleb.getInt("id");
+                ResultSet rsMention = tweetStatement.executeQuery("SELECT * FROM plebTweetMentions WHERE plebTweetId = " + tweetId + ";");
+
+                //construct tweet
+                Tweet tweet = new Tweet();
+                tweet.setAuthorId(plebId);
+                tweet.setSentimentPos(rsPleb.getInt("sentimentPos"));
+                tweet.setSentimentNeg(rsPleb.getInt("sentimentNeg"));
+
+                //add mentions to tweet
+                mentionsList.clear();
+                while(rsMention.next()){
+                    mentionsList.add(rsMention.getLong("mention"));
+                }
+                Long[] mentionsArr = new Long[mentionsList.size()];
+                mentionsArr = mentionsList.toArray(mentionsArr);
+                tweet.setMentions(mentionsArr);
+
+                //check if pleb already existing and add tweet, else create
+                if(plebMap.containsKey(plebId)){
+                    plebMap.get(plebId).addTweet(tweet);
+                }else{
+                    Pleb pleb = new Pleb();
+                    pleb.setId(plebId);
+                    pleb.addTweet(tweet);
+                    plebMap.put(plebId,pleb);
+                }
+            }
+
+            plebStatement.close();
+        } catch ( Exception e ) {
+            System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+            System.exit(0);
+        }
+        return new ArrayList<>(plebMap.values());
+    }
+
+    public ArrayList<Pleb> getNPlebsfromDB(int numberOfPlebs){
+        HashMap<Long,Pleb> plebMap = new HashMap<>();
+        ArrayList<Long> mentionsList = new ArrayList<Long>();
+        int tweetId;
+        long plebId;
+        try{
+            Statement plebStatement = conn.createStatement();
+            Statement tweetStatement = conn.createStatement();
+
+            ResultSet rsPleb = plebStatement.executeQuery("SELECT * FROM plebTweets ORDER BY authorId ASC;");
+
+
+            int count = 0;
+            while (rsPleb.next()) {
+
+                if(count > numberOfPlebs){
+                    break;
+                }else{
+                    System.out.println("Processing Pleb no: "+count);
+                    count++;
+                }
+
+                plebId = rsPleb.getLong("authorId");
+
+                //check for all mentions in this tweet
+                tweetId = rsPleb.getInt("id");
+                ResultSet rsMention = tweetStatement.executeQuery("SELECT * FROM plebTweetMentions WHERE plebTweetId = " + tweetId + ";");
+
+                //construct tweet
+                Tweet tweet = new Tweet();
+                tweet.setAuthorId(plebId);
+                tweet.setSentimentPos(rsPleb.getInt("sentimentPos"));
+                tweet.setSentimentNeg(rsPleb.getInt("sentimentNeg"));
+
+                //add mentions to tweet
+                mentionsList.clear();
+                while(rsMention.next()){
+                    mentionsList.add(rsMention.getLong("mention"));
+                }
+                Long[] mentionsArr = new Long[mentionsList.size()];
+                mentionsArr = mentionsList.toArray(mentionsArr);
+                tweet.setMentions(mentionsArr);
+
+                //check if pleb already existing and add tweet, else create
+                if(plebMap.containsKey(plebId)){
+                    plebMap.get(plebId).addTweet(tweet);
+                }else{
+                    Pleb pleb = new Pleb();
+                    pleb.setId(plebId);
+                    pleb.addTweet(tweet);
+                    plebMap.put(plebId,pleb);
+                }
+            }
+
+            plebStatement.close();
+        } catch ( Exception e ) {
+            System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+            System.exit(0);
+        }
+        return new ArrayList<>(plebMap.values());
+    }
+
+
+    public ArrayList<Tweet> getAllTweetsfromDB(String table){
 		ArrayList<Tweet> ts = new ArrayList<Tweet>();
 		try{
 			Statement statement = conn.createStatement();
-			ResultSet rs = statement.executeQuery("SELECT * FROM " + table + " ORDER BY id ASC");
+			ResultSet rs = statement.executeQuery("SELECT * FROM " + table + " ORDER BY id ASC;");
 		
 			while (rs.next()) {
 				Tweet t = new Tweet();
@@ -489,7 +605,7 @@ public class Database {
 		ArrayList<VipTweet> vipTweets = new ArrayList<VipTweet>();
 		try{
 			Statement statement = conn.createStatement();
-			ResultSet rs = statement.executeQuery("SELECT * FROM vipTweets WHERE authorId=" + authorId);
+			ResultSet rs = statement.executeQuery("SELECT * FROM vipTweets WHERE authorId=" + authorId + ";");
 		
 			while (rs.next()) {
 				VipTweet t = new VipTweet();
@@ -513,7 +629,7 @@ public class Database {
 				
 				
 				
-				long[] mentions = new long[count]; 
+				Long[] mentions = new Long[count];
 				rs = statement.executeQuery("SELECT * FROM VipTweetMentions WHERE vipTweetId=" + tweet.getGeneratedId());
 				int i=0;
 				while(rs.next()){
@@ -709,6 +825,8 @@ public class Database {
 		}
 	}
 	
+	//todo tweeten uU auch ueber andere Vips (aber anscheinend nicht viele)
+	//todo stimmt removePlebTweet?
 	public void cleanPlebFriends(){
 		PreparedStatement preparedStatement = null;
 		String removeFromPlebFriends = "DELETE FROM plebTweets " +
@@ -749,17 +867,17 @@ public class Database {
 //    
 //DELETE FROM plebTweetMentions WHERE plebTweetId NOT IN (SELECT id FROM plebTweets);
 		
-		
+
 		String removeSuspendedOrDeleted = "DELETE FROM plebTweets "
 				+ "WHERE id IN (SELECT id "
 				+ "FROM plebTweetMentions pm "
 				+ "JOIN plebTweets pt ON pm.plebTweetId = pt.id "
 				+ "WHERE pt.authorId NOT IN (SELECT pleb FROM plebFriends))";
-		
+
 		String removePlebTweetMentions = "DELETE FROM plebTweetMentions "
 				+ "WHERE plebTweetId NOT IN "
 				+ "(SELECT id FROM plebTweets)";
-		
+
 		try {
 			preparedStatement = conn.prepareStatement(removePlebTweetOneMention);
 			preparedStatement.executeUpdate();
@@ -772,15 +890,15 @@ public class Database {
 			preparedStatement = conn.prepareStatement(removeSuspendedOrDeleted);
 			preparedStatement.executeUpdate();
 			preparedStatement.close();
-			
+
 			preparedStatement = conn.prepareStatement(removePlebTweetMentions);
 			preparedStatement.executeUpdate();
 			preparedStatement.close();
-			
+
 //			preparedStatement = conn.prepareStatement(removeFromPlebFriends);
 //			preparedStatement.executeUpdate();
 //			preparedStatement.close();
-			
+
 			System.out.println("deleted plebFriends");
 		}catch (SQLException e) {
 
