@@ -372,7 +372,7 @@ public class Database {
 		}
 		return false;
 	}
-	
+
 	//debugging and testing
 	public String executeQuery(String query){
 		String r = "";
@@ -385,7 +385,7 @@ public class Database {
 		try{
 			Statement statement = conn.createStatement();
 			ResultSet rs = statement.executeQuery(query );
-			
+
 			while (rs.next()) {
 				//long getid =
 			    r += //"#-#-#-#-#" + rs.getString("text")+ "\n";
@@ -393,7 +393,7 @@ public class Database {
 			    		// + " " + rs.getInt("friend") +"\n";
 //			    		":: " + rs.getLong("authorId") + " # " + rs.getInt("friendcnt") + "\n";
 			}
-			
+
 			statement.close();
 		} catch ( Exception e ) {
 			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
@@ -404,6 +404,7 @@ public class Database {
 	}
 
 	public ArrayList<Vip> getNVipsFromDB(int numberOfVips){
+
 		ArrayList<Vip> vips = new ArrayList<Vip>();
 		try{
 			Statement statement = conn.createStatement();
@@ -463,17 +464,19 @@ public class Database {
     public ArrayList<Pleb> getAllPlebsfromDB(){
         HashMap<Long,Pleb> plebMap = new HashMap<>();
         ArrayList<Long> mentionsList = new ArrayList<Long>();
+        ArrayList<Long> friendsList = new ArrayList<Long>();
         int tweetId;
         long plebId;
         try{
             Statement plebStatement = conn.createStatement();
             Statement tweetStatement = conn.createStatement();
+			Statement friendStatement = conn.createStatement();
 
             ResultSet rsPleb = plebStatement.executeQuery("SELECT * FROM plebTweets ORDER BY authorId ASC;");
 
             while (rsPleb.next()) {
                 plebId = rsPleb.getLong("authorId");
-
+				ResultSet rsFriends = friendStatement.executeQuery("SELECT  * FROM plebFriends WHERE pleb = "+ plebId +";");
                 //check for all mentions in this tweet
                 tweetId = rsPleb.getInt("id");
                 ResultSet rsMention = tweetStatement.executeQuery("SELECT * FROM plebTweetMentions WHERE plebTweetId = " + tweetId + ";");
@@ -493,13 +496,23 @@ public class Database {
                 mentionsArr = mentionsList.toArray(mentionsArr);
                 tweet.setMentions(mentionsArr);
 
+				//get friendsArray for Pleb
+				friendsList.clear();
+				while(rsFriends.next()){
+					friendsList.add(rsFriends.getLong("friend"));
+				}
+				Long[] friendsArr = new Long[friendsList.size()];
+				friendsArr = friendsList.toArray(friendsArr);
+
                 //check if pleb already existing and add tweet, else create
                 if(plebMap.containsKey(plebId)){
                     plebMap.get(plebId).addTweet(tweet);
+					plebMap.get(plebId).setFriends(friendsArr);
                 }else{
                     Pleb pleb = new Pleb();
                     pleb.setId(plebId);
                     pleb.addTweet(tweet);
+					pleb.setFriends(friendsArr);
                     plebMap.put(plebId,pleb);
                 }
             }
@@ -515,11 +528,14 @@ public class Database {
     public ArrayList<Pleb> getNPlebsfromDB(int numberOfPlebs){
         HashMap<Long,Pleb> plebMap = new HashMap<>();
         ArrayList<Long> mentionsList = new ArrayList<Long>();
-        int tweetId;
+		ArrayList<Long> friendsList = new ArrayList<Long>();
+
+		int tweetId;
         long plebId;
         try{
             Statement plebStatement = conn.createStatement();
             Statement tweetStatement = conn.createStatement();
+			Statement friendStatement = conn.createStatement();
 
             ResultSet rsPleb = plebStatement.executeQuery("SELECT * FROM plebTweets ORDER BY authorId ASC;");
 
@@ -527,46 +543,56 @@ public class Database {
             int count = 0;
             while (rsPleb.next()) {
 
-                if(count > numberOfPlebs){
-                    break;
-                }else{
-                    System.out.println("Processing Pleb no: "+count);
-                    count++;
-                }
+				if (count >= numberOfPlebs) {
+					break;
+				} else {
+					System.out.println("Processing Pleb no: " + count);
+					count++;
+				}
 
-                plebId = rsPleb.getLong("authorId");
+				plebId = rsPleb.getLong("authorId");
+				ResultSet rsFriends = friendStatement.executeQuery("SELECT  * FROM plebFriends WHERE pleb = " + plebId + ";");
+				//check for all mentions in this tweet
+				tweetId = rsPleb.getInt("id");
+				ResultSet rsMention = tweetStatement.executeQuery("SELECT * FROM plebTweetMentions WHERE plebTweetId = " + tweetId + ";");
 
-                //check for all mentions in this tweet
-                tweetId = rsPleb.getInt("id");
-                ResultSet rsMention = tweetStatement.executeQuery("SELECT * FROM plebTweetMentions WHERE plebTweetId = " + tweetId + ";");
+				//construct tweet
+				Tweet tweet = new Tweet();
+				tweet.setAuthorId(plebId);
+				tweet.setSentimentPos(rsPleb.getInt("sentimentPos"));
+				tweet.setSentimentNeg(rsPleb.getInt("sentimentNeg"));
 
-                //construct tweet
-                Tweet tweet = new Tweet();
-                tweet.setAuthorId(plebId);
-                tweet.setSentimentPos(rsPleb.getInt("sentimentPos"));
-                tweet.setSentimentNeg(rsPleb.getInt("sentimentNeg"));
+				//add mentions to tweet
+				mentionsList.clear();
+				while (rsMention.next()) {
+					mentionsList.add(rsMention.getLong("mention"));
+				}
+				Long[] mentionsArr = new Long[mentionsList.size()];
+				mentionsArr = mentionsList.toArray(mentionsArr);
+				tweet.setMentions(mentionsArr);
 
-                //add mentions to tweet
-                mentionsList.clear();
-                while(rsMention.next()){
-                    mentionsList.add(rsMention.getLong("mention"));
-                }
-                Long[] mentionsArr = new Long[mentionsList.size()];
-                mentionsArr = mentionsList.toArray(mentionsArr);
-                tweet.setMentions(mentionsArr);
+				//get friendsArray for Pleb
+				friendsList.clear();
+				while (rsFriends.next()) {
+					friendsList.add(rsFriends.getLong("friend"));
+				}
+				Long[] friendsArr = new Long[friendsList.size()];
+				friendsArr = friendsList.toArray(friendsArr);
 
-                //check if pleb already existing and add tweet, else create
-                if(plebMap.containsKey(plebId)){
-                    plebMap.get(plebId).addTweet(tweet);
-                }else{
-                    Pleb pleb = new Pleb();
-                    pleb.setId(plebId);
-                    pleb.addTweet(tweet);
-                    plebMap.put(plebId,pleb);
-                }
-            }
-
+				//check if pleb already existing and add tweet, else create
+				if (plebMap.containsKey(plebId)) {
+					plebMap.get(plebId).addTweet(tweet);
+					plebMap.get(plebId).setFriends(friendsArr);
+				} else {
+					Pleb pleb = new Pleb();
+					pleb.setId(plebId);
+					pleb.addTweet(tweet);
+					pleb.setFriends(friendsArr);
+					plebMap.put(plebId, pleb);
+				}
+			}
             plebStatement.close();
+
         } catch ( Exception e ) {
             System.err.println( e.getClass().getName() + ": " + e.getMessage() );
             System.exit(0);

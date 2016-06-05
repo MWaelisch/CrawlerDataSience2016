@@ -6,7 +6,7 @@ import java.util.ArrayList;
 public class Pleb {
 
 	private long id;
-	private long[] friends;
+	private Long[] friends;
 	private ArrayList<Tweet> tweets;
 
 
@@ -28,10 +28,10 @@ public class Pleb {
 	public void setId(long id) {
 		this.id = id;
 	}
-	public long[] getFriends() {
+	public Long[] getFriends() {
 		return friends;
 	}
-	public void setFriends(long[] friends) {
+	public void setFriends(Long[] friends) {
 		this.friends = friends;
 	}
 	public ArrayList<Tweet> getTweets() {
