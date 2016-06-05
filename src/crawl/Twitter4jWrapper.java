@@ -226,7 +226,7 @@ public class Twitter4jWrapper {
 					vipTweet.setInReplyTo(status.getInReplyToUserId());
 
 					UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
-					long[] userMentions = new long[userMentionEntities.length];
+					Long[] userMentions = new Long[userMentionEntities.length];
 					for (int i = 0; i < userMentionEntities.length; i++) {
 						long userMention = userMentionEntities[i].getId();
 						System.out.println(userMentionEntities[i].getScreenName());
@@ -281,12 +281,13 @@ public class Twitter4jWrapper {
 		
 		System.out.println("Finished search for mentions of VIPs");
 	}
-	
+
+
 	/**
 	 * Possible requests 180/ 15 min
 	 * 	                 450/ 15 min app-only
 	 * 
-	 * @param searchTweets
+	 * @param searchTweets //todo this is throwing an error in my IDE?
 	 * @return 
 	 */
 	private void searchTweet(String q, String screenName){

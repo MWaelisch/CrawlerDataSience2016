@@ -1,7 +1,7 @@
 package model;
 
 public class Tweet {
-	//todo authorId sometimes also reflects the tweet Id
+
 	private long authorId;
 	private String screenName;
 	private String idStr;
@@ -9,28 +9,9 @@ public class Tweet {
 	private int generatedId;
 	private int sentimentPos;
 	private int sentimentNeg;
-	
-	public Tweet(){}
-	
-	public Tweet(long authorId, String idStr, String text, int generatedId, int sentimentPos, int sentimentNeg){
-    	this.authorId = authorId;
-    	this.idStr = idStr;
-    	this.text = text;
-    	this.generatedId = generatedId;
-    	this.sentimentPos = sentimentPos;
-    	this.sentimentNeg = sentimentNeg;
-    }
-	
-	public Tweet(long authorId, String text) {
-		this.authorId = authorId;
-		this.text = text;
-	}
+	private Long[] mentions; //todo check if change long->Long had some negative effects in crawling
 
-	public Tweet(long authorId, String text, int posSentiment) {
-		this.authorId = authorId;
-		this.text = text;
-		this.sentimentPos = posSentiment;
-	}
+	public Tweet(){}
 
 	public long getAuthorId() {
 		return authorId;
@@ -83,6 +64,14 @@ public class Tweet {
 		this.sentimentPos = sentiScore[0];
 		this.sentimentNeg = sentiScore[1];
 	}
+
+	public Long[] getMentions() {
+		return mentions;
+	}
+	public void setMentions(Long[] mentions) {
+		this.mentions = mentions;
+	}
+
 
 	//TODO can this be deleted ?
 	public String getScreenName() {
