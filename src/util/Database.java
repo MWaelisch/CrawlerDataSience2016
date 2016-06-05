@@ -240,34 +240,12 @@ public class Database {
 	public void addPlebTweet(Tweet plebTweet, long vipId){
 		addPlebTweetData(plebTweet);
 		if(plebTweet.getGeneratedId() != 0){
-			PreparedStatement preparedStatement = null;
-
-			String insertTableSQL = "INSERT INTO plebTweetMentions"
-					+ "(plebTweetId, mention) VALUES"
-					+ "(?,?)";
-			try {
-				preparedStatement = conn.prepareStatement(insertTableSQL);
-				preparedStatement.setInt(1,plebTweet.getGeneratedId());
-				preparedStatement.setLong(2, vipId);
-				
-				// execute insert SQL statement
-				preparedStatement.executeUpdate();
-				preparedStatement.clearParameters();
-			}catch (SQLException e) {
-
-				System.out.println(e.getMessage());
-
-			} finally {
-
-				if (preparedStatement != null) {
-					try {
-						preparedStatement.close();
-					} catch (SQLException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
+			for(long mention : plebTweet.getMentions()){
+				addPlebTweetMentions(plebTweet.getGeneratedId(), mention);
 			}
+			
+			if(!isPlebMentionInDB(plebTweet.getGeneratedId(), vipId))
+				addPlebTweetMentions(plebTweet.getGeneratedId(), vipId);
 		}else{
 			try {
 				throw new Exception("VIP Tweet database Insert returned 0");
@@ -299,6 +277,40 @@ public class Database {
 			if (rs.next()) {
 			  int generatedId = rs.getInt(1);
 			  plebTweet.setGeneratedId(generatedId);
+			}
+		}catch (SQLException e) {
+
+			System.out.println(e.getMessage());
+
+		} finally {
+
+			if (preparedStatement != null) {
+				try {
+					preparedStatement.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+
+	public void addPlebTweetMentions(long plebTweetId, long mention){
+		PreparedStatement preparedStatement = null;
+
+		String insertTableSQL = "INSERT INTO plebTweetMentions"
+				+ "(plebTweetId, mention) VALUES"
+				+ "(?,?)";
+
+		try {
+			preparedStatement = conn.prepareStatement(insertTableSQL);
+			if(!isPlebMentionInDB(plebTweetId, mention)){
+				preparedStatement.setLong(1, plebTweetId);
+				preparedStatement.setLong(2, mention);
+				// execute insert SQL statement
+				preparedStatement.executeUpdate();
+				preparedStatement.clearParameters();
 			}
 		}catch (SQLException e) {
 
@@ -363,6 +375,82 @@ public class Database {
 			    if (rs.wasNull()) {
 					return false;
 			    } else return true;
+			}
+			
+			statement.close();
+		} catch ( Exception e ) {
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			System.exit(0);
+		}
+		return false;
+	}
+	
+	public boolean isPlebTweetInDB(String id){
+		try{
+			Statement statement = conn.createStatement();
+
+			ResultSet rs = statement.executeQuery( "SELECT idStr FROM plebTweets WHERE idStr = '" + id + "';" );
+
+			if (rs.next()) {
+				//long getid =
+			    rs.getString("idStr");
+			    if (rs.wasNull()) {
+			    	System.out.println("Tweet was not in DB");
+					return false;
+			    } else {
+			    	System.out.println("Tweet was in DB");
+			    	return true;
+			    }
+			}
+			
+			statement.close();
+		} catch ( Exception e ) {
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			System.exit(0);
+		}
+    	System.out.println("Tweet " + id + " was not in DB");
+		return false;
+	}
+	
+	public long getTweetId(String tweetId){
+		try{
+			Statement statement = conn.createStatement();
+
+			ResultSet rs = statement.executeQuery( "SELECT id FROM plebTweets "
+					+ "WHERE idStr = '" + tweetId + "';" );
+
+			if (rs.next()) {
+				long id = rs.getLong("id");
+			    if (rs.wasNull()) {
+					return -1;
+			    } else {
+			    	return id;
+			    }
+			}
+			
+			statement.close();
+		} catch ( Exception e ) {
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			System.exit(0);
+		}
+		return -1;
+	}
+	
+	public boolean isPlebMentionInDB(long plebTweetId, long mention){
+		try{
+			Statement statement = conn.createStatement();
+
+			ResultSet rs = statement.executeQuery( "SELECT plebTweetId FROM plebTweetMentions "
+					+ "WHERE plebTweetId = " + plebTweetId + " "
+					+ "AND mention = " + mention + ";" );
+
+			if (rs.next()) {
+			    rs.getString("idStr");
+			    if (rs.wasNull()) {
+					return false;
+			    } else {
+			    	return true;
+			    }
 			}
 			
 			statement.close();

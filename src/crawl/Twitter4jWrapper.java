@@ -315,21 +315,39 @@ public class Twitter4jWrapper {
 	               	//debug
 	               	//System.out.println("tweets: " + tweets.toString());
 	               for (Status tweet : tweets) {
-	            	   if(!tweet.isRetweet()){
-	            		   	count++;
-		                	Tweet plebTweet = new Tweet();
-		                	
-		                	//auto-inc ID
-			            	plebTweet.setAuthorId(tweet.getUser().getId());
-			            	plebTweet.setIdStr(String.valueOf(tweet.getId()));
-			            	plebTweet.setText(tweet.getText());
-			            	plebTweet.setScreenName(tweet.getUser().getScreenName());
-			            	
-			            	//pt.add(plebTweet);
-			            	database.addPlebTweet(plebTweet, database.getVipID(screenName));
+	            	   System.out.println("Language: " + tweet.getLang() + "   " + tweet.getText());
+	            	   if(tweet.getLang().matches("de|en")){
+	            		   if(database.isPlebTweetInDB(String.valueOf(tweet.getId()))){
+	            			   long tweetId = database.getTweetId(String.valueOf(tweet.getId()));
+	            			   if(!database.isPlebMentionInDB(tweetId, tweet.getUser().getId())){
+	            				   database.addPlebTweetMentions(tweetId, database.getVipID(screenName));
+	            			   }
+	            		   } else {
+		            		   	count++;
+			                	Tweet plebTweet = new Tweet();
+			                	
+			                	//auto-inc ID
+				            	plebTweet.setAuthorId(tweet.getUser().getId());
+				            	plebTweet.setIdStr(String.valueOf(tweet.getId()));
+				            	plebTweet.setText(tweet.getText());
+				            	plebTweet.setScreenName(tweet.getUser().getScreenName());
+				            	
+
+								UserMentionEntity[] userMentionEntities = tweet.getUserMentionEntities();
+								Long[] userMentions = new Long[userMentionEntities.length];
+								for (int i = 0; i < userMentionEntities.length; i++) {
+									long userMention = userMentionEntities[i].getId();
+									System.out.println(userMentionEntities[i].getScreenName());
+									userMentions[i] = userMention;
+								}
+								plebTweet.setMentions(userMentions);
+				            	
+				            	//pt.add(plebTweet);
+				            	database.addPlebTweet(plebTweet, database.getVipID(screenName));
+	            		   }
 	            	   }
 	               }
-	           } while ((query = result.nextQuery()) != null && count <= 100);
+	           } while ((query = result.nextQuery()) != null /*&& count <= 100*/);
 	           System.out.println("Number of tweets: " + count);
 	       } catch (TwitterException te) {
 	            te.printStackTrace();
@@ -416,20 +434,20 @@ public class Twitter4jWrapper {
 						tillWait--;
 						boolean hasVipFriend = false;
 						for(long friend : friendList){
-				    		if(database.isIDInDB(friend, "id", "vip")){
+//				    		if(database.isIDInDB(friend, "id", "vip")){
 				            	PlebFriend plebFriend = new PlebFriend();
 				            	plebFriend.setId(pt.getAuthorId());
 				        		plebFriend.setFriend(friend);
 				           		database.addPlebFriend(plebFriend);
 				           		hasVipFriend = true;
-				    		}
+//				    		}
 				    	}
-						if(!hasVipFriend){
-							PlebFriend plebFriend = new PlebFriend();
-			            	plebFriend.setId(pt.getAuthorId());
-			        		plebFriend.setFriend(0);
-			           		database.addPlebFriend(plebFriend);
-						}
+//						if(!hasVipFriend){
+//							PlebFriend plebFriend = new PlebFriend();
+//			            	plebFriend.setId(pt.getAuthorId());
+//			        		plebFriend.setFriend(0);
+//			           		database.addPlebFriend(plebFriend);
+//						}
 					}
 				} catch (TwitterException e) {
 					// TODO Auto-generated catch block
