@@ -375,25 +375,22 @@ public class Database {
 	//debug
 	public String executeQuery(String query){
 		String r = "";
-		String selectPlebMentions =  "SELECT authorId, COUNT(pm.mention) AS friendcnt "//"DELETE pm, pt "
-				+ "FROM plebTweetMentions pm "
-				+ "JOIN plebTweets pt ON pm.plebTweetId = pt.id "
-				+ "JOIN plebFriends pf ON pt.authorId = pf.pleb "
-				+ "WHERE pf.friend = 0 "
-			//	+ "AND (SELECT COUNT(pm2.mention) AS friendcnt FROM plebTweets pt2 JOIN plebTweetMentions pm2 ON pm.plebTweetId = pt.id"
-				+ "GROUP BY pt.authorId HAVING COUNT(pm.mention) >= 2";
-//				+ "GROUP BY pt.authorId, pm.mention"
-//				+ "HAVING COUNT() " ;
+//		String selectPlebMentions =  "SELECT authorId, COUNT(pm.mention) AS friendcnt "//"DELETE pm, pt "
+//				+ "FROM plebTweetMentions pm "
+//				+ "JOIN plebTweets pt ON pm.plebTweetId = pt.id "
+//				+ "JOIN plebFriends pf ON pt.authorId = pf.pleb "
+//				+ "WHERE pf.friend = 0 "
+//				+ "GROUP BY pt.authorId HAVING COUNT(pm.mention) >= 2";
 		try{
 			Statement statement = conn.createStatement();
-			ResultSet rs = statement.executeQuery(selectPlebMentions);	//query );
+			ResultSet rs = statement.executeQuery(query );
 			
 			while (rs.next()) {
 				//long getid =
 			    r += //"#-#-#-#-#" + rs.getString("text")+ "\n";
-//			    		"::" + rs.getLong("pleb")+ "\n";
+			    		"::" + rs.getLong("plebTweetid")+ "\n";
 			    		// + " " + rs.getInt("friend") +"\n";
-			    		":: " + rs.getLong("authorId") + " # " + rs.getInt("friendcnt") + "\n";
+//			    		":: " + rs.getLong("authorId") + " # " + rs.getInt("friendcnt") + "\n";
 			}
 			
 			statement.close();
@@ -712,19 +709,18 @@ public class Database {
 		}
 	}
 	
-	//tweeten uU auch ueber andere Vips (aber anscheinend nicht viele)
-	//stimmt removePlebTweet?
 	public void cleanPlebFriends(){
 		PreparedStatement preparedStatement = null;
 		String removeFromPlebFriends = "DELETE FROM plebTweets " +
-									  "WHERE friend = " + 0;
+									  "WHERE friend = 0";
 		
-		String removePlebTweet = "DELETE pm, pt "
-			+ "FROM plebTweetMentions pm "
-			+ "JOIN plebTweets pt ON pm.plebTweetId = pt.id "
-			+ "JOIN plebFriends pf ON pt.authorId = pf.pleb "
-			+ "WHERE pf.friend = 0 "
-			+ "GROUP BY pt.authorId HAVING COUNT(pm.mention) < 2";
+		String removePlebTweetOneMention = "DELETE FROM plebTweets "
+				+ "WHERE id IN (SELECT id "
+				+ "FROM plebTweetMentions pm "
+				+ "JOIN plebTweets pt ON pm.plebTweetId = pt.id "
+				+ "JOIN plebFriends pf ON pt.authorId = pf.pleb "
+				+ "WHERE pf.friend = 0 "
+				+ "GROUP BY pt.authorId HAVING COUNT(pm.mention) < 2)";
 		
 //		DELETE plebTweets, PlebTweetMentions,plebFriends FROM plebTweets JOIN plebTweetmentions ON plebTweetId = plebTweets.id JOIN plebFriends ON authorId = pleb  WHErE authorId IN (SELECT authorId
 //        FROM plebTweetMentions pm 
@@ -734,7 +730,17 @@ public class Database {
 //        GROUP BY pt.authorId HAVING COUNT(pm.mention) >= 2) AND NOT text LIKE '%Youtube%'ORDER BY authorId
 //        
 //        
-//DELETE FROM plebTweets WHErE authorId IN (SELECT authorId
+		String removeWithoutYoutube = "DELETE FROM plebTweets "
+				+ "WHERE id IN (SELECT id "
+				+ "FROM plebTweetMentions pm "
+				+ "JOIN plebTweets pt ON pm.plebTweetId = pt.id "
+				+ "WHERE authorId IN "
+				+ "(SELECT authorId FROM plebTweetMentions pm "
+				+ "JOIN plebTweets pt ON pm.plebTweetId = pt.id "
+				+ "JOIN plebFriends pf ON pt.authorId = pf.pleb "
+				+ "WHERE pf.friend=0 "
+				+ "GROUP BY pt.authorId HAVING COUNT(pm.mention) >= 2) AND NOT text LIKE '%Youtube%')";
+//DELETE FROM plebTweets WHERE authorId IN (SELECT authorId
 //    FROM plebTweetMentions pm 
 //    JOIN plebTweets pt ON pm.plebTweetId = pt.id 
 //    JOIN plebFriends pf ON pt.authorId = pf.pleb 
@@ -743,14 +749,37 @@ public class Database {
 //    
 //DELETE FROM plebTweetMentions WHERE plebTweetId NOT IN (SELECT id FROM plebTweets);
 		
+		
+		String removeSuspendedOrDeleted = "DELETE FROM plebTweets "
+				+ "WHERE id IN (SELECT id "
+				+ "FROM plebTweetMentions pm "
+				+ "JOIN plebTweets pt ON pm.plebTweetId = pt.id "
+				+ "WHERE pt.authorId NOT IN (SELECT pleb FROM plebFriends))";
+		
+		String removePlebTweetMentions = "DELETE FROM plebTweetMentions "
+				+ "WHERE plebTweetId NOT IN "
+				+ "(SELECT id FROM plebTweets)";
+		
 		try {
-			preparedStatement = conn.prepareStatement(removePlebTweet);
+			preparedStatement = conn.prepareStatement(removePlebTweetOneMention);
+			preparedStatement.executeUpdate();
+			preparedStatement.close();
+
+			preparedStatement = conn.prepareStatement(removeWithoutYoutube);
+			preparedStatement.executeUpdate();
+			preparedStatement.close();
+
+			preparedStatement = conn.prepareStatement(removeSuspendedOrDeleted);
 			preparedStatement.executeUpdate();
 			preparedStatement.close();
 			
-			preparedStatement = conn.prepareStatement(removeFromPlebFriends);
+			preparedStatement = conn.prepareStatement(removePlebTweetMentions);
 			preparedStatement.executeUpdate();
 			preparedStatement.close();
+			
+//			preparedStatement = conn.prepareStatement(removeFromPlebFriends);
+//			preparedStatement.executeUpdate();
+//			preparedStatement.close();
 			
 			System.out.println("deleted plebFriends");
 		}catch (SQLException e) {
