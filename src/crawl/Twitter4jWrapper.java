@@ -69,8 +69,6 @@ public class Twitter4jWrapper {
 	{
 		List<List<String>> parts = prepareVipLists(vipNames, 100);
 		
-	//	Database database = new Database();
-		
 		for(List<String> part : parts){
 			
 			String[] vipnamesArr = new String[part.size()];
@@ -90,7 +88,6 @@ public class Twitter4jWrapper {
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
-		//				database.closeConnection();
 					}
 				}
 					System.out.println("Crawle Friends von " + vip.getScreenName());
@@ -101,7 +98,6 @@ public class Twitter4jWrapper {
 			System.out.println("Friends gecrawled");
 			
 		}
-	//	database.closeConnection();
 		System.out.println("Finished");
 	}
 	
