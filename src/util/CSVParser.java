@@ -13,6 +13,7 @@ public class CSVParser {
 	private static final int VIP_HASH_NAME = 2;
 	
 	private Properties config;
+	private String vipCsv;
 	
 	public CSVParser(Properties config){
 		
@@ -20,7 +21,17 @@ public class CSVParser {
 		
 	}
 	
+	public CSVParser(String vipCsv){
+		
+		this.vipCsv = vipCsv;
+		
+	}
 	
+	/**
+	 * Parse the screen names out of a csv File
+	 * 
+	 * @return screenNames of the Vips
+	 */
 	public ArrayList<String> parseVips() {
 
 		ArrayList<String> names = new ArrayList<String>();
@@ -29,8 +40,13 @@ public class CSVParser {
 		final String DELIMITER = ";";
 		try {
 			String line = "";
-			// Create the file reader
-			fileReader = new BufferedReader(new FileReader(config.getProperty("vipCsv")));
+			if(config != null){
+				//path to csv from config
+				fileReader = new BufferedReader(new FileReader(config.getProperty("vipCsv")));
+			}else{
+				//path to csv from direct input 
+				fileReader = new BufferedReader(new FileReader(vipCsv));
+			}
 
 			while ((line = fileReader.readLine()) != null) {
 				String[] tokens = line.split(DELIMITER, 1);
@@ -39,7 +55,7 @@ public class CSVParser {
 				String[] namesSplit = tokens[0].split(",");
 				String atName = namesSplit[1].trim();
 				atName = atName.substring(1,atName.length()-1);
-				//System.out.println(atName);
+//				System.out.println(atName);
 				names.add(atName);
 			}
 
@@ -66,8 +82,13 @@ public class CSVParser {
 		final String DELIMITER = ";";
 		try {
 			String line = "";
-			// Create the file reader
-			fileReader = new BufferedReader(new FileReader(config.getProperty("vipCsv")));
+			if(config != null){
+				//path to csv from config
+				fileReader = new BufferedReader(new FileReader(config.getProperty("vipCsv")));
+			}else{
+				//path to csv from direct input 
+				fileReader = new BufferedReader(new FileReader(vipCsv));
+			}
 
 			while ((line = fileReader.readLine()) != null) {
 				String[] tokens = line.split(DELIMITER, 1);
