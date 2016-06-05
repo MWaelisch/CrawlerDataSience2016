@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by clem on 04/06/16.
@@ -86,7 +88,6 @@ public class VipMatrix {
 
             }
         System.out.println("VIP "+i+": ,"+Arrays.toString(vipRelationMatrix[i]));
-
         }
     }
 
@@ -95,7 +96,14 @@ public class VipMatrix {
     }
 
     public void writeToCsv(){
-
+    	
+    	//testing
+    	HashSet specialVips = new HashSet();
+    	Set<String> vipSet = new HashSet<String>(Arrays.asList(
+    			"Selfmade Records","Kollegah","257ers","GENETIKK","SHINDY","Bushido",
+    			"sido","BASS SULTAN HENGZT","3Plusss","CRO","PSAIKODINO","DANJU DANJU",
+    			"KAAS","Tua Tolstoi","Bartek","Maeckes"
+    			));
         try {
             File file = new File("./resources/relationshipMatrix.csv");
             file.createNewFile();
@@ -110,15 +118,16 @@ public class VipMatrix {
 
             int count = 0;
             for(Vip vip : vips){
-                line.setLength(0);
-                line.append(Arrays.toString(vipRelationMatrix[count]));
-                line.replace(0,1,"");
-                line.setLength(line.length()-1);
-                line.insert(0,vip.getUserName()+",");
-                line.append("\n");
-                writer.write(line.toString());
-                count++;
-
+//            	if(vipSet.contains(vip.getUserName())){
+                    line.setLength(0);
+                    line.append(Arrays.toString(vipRelationMatrix[count]));
+                    line.replace(0,1,"");
+                    line.setLength(line.length()-1);
+                    line.insert(0,vip.getUserName()+",");
+                    line.append("\n");
+                    writer.write(line.toString());
+                    count++;
+//            	}
             }
 
             writer.flush();

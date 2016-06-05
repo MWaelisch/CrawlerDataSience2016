@@ -32,7 +32,6 @@ public class Database {
 			e1.printStackTrace();
 		}
 		
-		
 	}
 	
 	public void closeConnection(){
