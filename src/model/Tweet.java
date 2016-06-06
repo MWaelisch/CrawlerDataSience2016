@@ -1,5 +1,7 @@
 package model;
 
+import static java.lang.Math.sqrt;
+
 public class Tweet {
 
 	private long authorId;
@@ -52,9 +54,9 @@ public class Tweet {
 
 	public int getSentiment(){
 		if(sentimentPos > Math.abs(sentimentNeg)){
-			return sentimentPos^2;
+			return sentimentPos*sentimentPos;
 		}else if (sentimentPos < Math.abs(sentimentNeg)){
-			return sentimentNeg^2;
+			return -sentimentNeg*sentimentNeg;
 		}else{
 			return 1;
 		}

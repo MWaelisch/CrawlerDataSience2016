@@ -19,8 +19,8 @@ public class VipMatrix {
     private static int MENTIONVALUE = 2;
     private static int REPLYVALUE = 10;
     private static int RETWEETVALUE = 20;
-    private static int PLEBMENTIONVALUE = 5;
-    private static int PLEBFRIENDVALUE = 80;
+    private static int PLEBMENTIONVALUE = 2;
+    private static int PLEBFRIENDVALUE = 1;
 
     private Map<Long, Integer> vipIdMap;
     private ArrayList<Vip> vips;
@@ -59,36 +59,6 @@ public class VipMatrix {
         }
 
     }
-
-    public void calculatePlebMentions(){
-        for(Pleb pleb : plebs){
-            for(Tweet tweet : pleb.getTweets()){
-                for(long mention : tweet.getMentions()){
-                    for(long friend : pleb.getFriends()){
-                        if(vipIdMap.containsKey(mention) && vipIdMap.containsKey(friend)){
-                            vipRelationMatrix[vipIdMap.get(friend)][vipIdMap.get(mention)] += tweet.getSentiment()*PLEBMENTIONVALUE;
-                            vipRelationMatrix[vipIdMap.get(mention)][vipIdMap.get(friend)] += tweet.getSentiment()*PLEBMENTIONVALUE;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    public void calculatePlebFriendships() {
-        for (Pleb pleb : plebs) {
-            for (long friend1 : pleb.getFriends()) {
-                for(long friend2: pleb.getFriends()){
-                    if(friend1 != friend2){
-                        vipRelationMatrix[vipIdMap.get(friend1)][vipIdMap.get(friend2)] += PLEBFRIENDVALUE;
-                        vipRelationMatrix[vipIdMap.get(friend2)][vipIdMap.get(friend1)] += PLEBFRIENDVALUE;
-                    }
-                }
-
-            }
-        }
-    }
-
     //check for each vipTweet if somebody is mentioned/replied/retweeted and apply Value multiplied with sentiment to Relationship
     public void calculateVipMentions(){
         for(int i = 0; i < vips.size(); i++){
@@ -110,9 +80,39 @@ public class VipMatrix {
 
 
             }
-        System.out.println("VIP "+i+": ,"+Arrays.toString(vipRelationMatrix[i]));
+            //System.out.println("VIP "+i+": ,"+Arrays.toString(vipRelationMatrix[i]));
         }
     }
+    public void calculatePlebMentions(){
+        for(Pleb pleb : plebs){
+            for(Tweet tweet : pleb.getTweets()){
+                for(long mention : tweet.getMentions()){
+                    for(long friend : pleb.getFriends()){
+                        if(vipIdMap.containsKey(mention) && vipIdMap.containsKey(friend)){
+                            vipRelationMatrix[vipIdMap.get(friend)][vipIdMap.get(mention)] += tweet.getSentiment()*PLEBMENTIONVALUE;
+                            vipRelationMatrix[vipIdMap.get(mention)][vipIdMap.get(friend)] += tweet.getSentiment()*PLEBMENTIONVALUE;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public void calculatePlebFriendships() {
+        for (Pleb pleb : plebs) {
+            for (long friend1 : pleb.getFriends()) {
+                for(long friend2: pleb.getFriends()){
+                    if(friend1 != friend2){
+                        vipRelationMatrix[vipIdMap.get(friend1)][vipIdMap.get(friend2)] += PLEBFRIENDVALUE;
+//                        vipRelationMatrix[vipIdMap.get(friend2)][vipIdMap.get(friend1)] += PLEBFRIENDVALUE;
+                    }
+                }
+
+            }
+        }
+    }
+
+
 
     public int[][] getVipRelationMatrix() {
         return vipRelationMatrix;

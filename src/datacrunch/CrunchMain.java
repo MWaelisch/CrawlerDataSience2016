@@ -38,14 +38,15 @@ public class CrunchMain {
 			ArrayList<Pleb> plebs = database.getAllPlebsfromDB();
 			// ArrayList<Pleb> plebs = database.getNPlebsfromDB(100);
 
-			// -------- MATRIX -------
+
+			//-------- MATRIX -------
 			VipMatrix vipMatrix = new VipMatrix(plebs, vips, vipIdMap);
-			// vipMatrix.calculateVipFriendships();
-			// vipMatrix.calculateVipMentions();
+			vipMatrix.calculateVipFriendships();
+			vipMatrix.calculateVipMentions();
 			vipMatrix.calculatePlebFriendships();
 			vipMatrix.calculatePlebMentions();
 
-			vipMatrix.writeToCsv("plebMatrix");
+			vipMatrix.writeToCsv("vipLio");
 
 			System.out.println("Finished");
 		} catch (ClassNotFoundException | SQLException | IOException e) {
