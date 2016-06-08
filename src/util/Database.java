@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.Properties;
 
 import model.*;
+import twitter4j.IDs;
 
 public class Database {
 	private Connection conn;
@@ -240,11 +241,11 @@ public class Database {
 
 	public void addPlebTweet(Tweet plebTweet, long vipId){
 		addPlebTweetData(plebTweet);
+		//falls tweet erfolgreich eingefügt wurde -> füge mentions in db ein
 		if(plebTweet.getGeneratedId() != 0){
 			for(long mention : plebTweet.getMentions()){
 				addPlebTweetMentions(plebTweet.getGeneratedId(), mention);
 			}
-			
 			if(!isPlebMentionInDB(plebTweet.getGeneratedId(), vipId))
 				addPlebTweetMentions(plebTweet.getGeneratedId(), vipId);
 		}else{
@@ -330,19 +331,23 @@ public class Database {
 		}
 	}
 
-	public void addPlebFriend(PlebFriend plebFriend) {
+	public void addPlebFriends(Pleb pleb) {
+		Long[] friends = pleb.getFriends();
 		PreparedStatement preparedStatement = null;
 
 		String insertTableSQL = "INSERT INTO plebFriends" + "(pleb, friend) VALUES" + "(?,?)";
 
 		try {
-			preparedStatement = conn.prepareStatement(insertTableSQL);
+			
+			for(Long friend : friends){
+				preparedStatement = conn.prepareStatement(insertTableSQL);
+				preparedStatement.setLong(1, pleb.getId());
+				preparedStatement.setLong(2, friend);
 
-			preparedStatement.setLong(1, plebFriend.getId());
-			preparedStatement.setLong(2, plebFriend.getFriend());
-
-			// execute insert SQL statement
-			preparedStatement.executeUpdate();
+				// execute insert SQL statement
+				preparedStatement.executeUpdate();
+				preparedStatement.close();
+			}
 
 			// System.out.println("PlebFriend Inserted!");
 		} catch (SQLException e) {
@@ -399,7 +404,7 @@ public class Database {
 			    	System.out.println("Tweet was not in DB");
 					return false;
 			    } else {
-			    	System.out.println("Tweet was in DB");
+			    	System.out.println("Tweet" + id  + "was in DB");
 			    	return true;
 			    }
 			}
@@ -441,20 +446,17 @@ public class Database {
 		try{
 			Statement statement = conn.createStatement();
 
-			ResultSet rs = statement.executeQuery( "SELECT plebTweetId FROM plebTweetMentions "
+			ResultSet rs = statement.executeQuery( "SELECT COUNT(*) as count FROM plebTweetMentions "
 					+ "WHERE plebTweetId = " + plebTweetId + " "
 					+ "AND mention = " + mention + ";" );
 
-			if (rs.next()) {
-			    rs.getString("idStr");
-			    if (rs.wasNull()) {
-					return false;
-			    } else {
-			    	return true;
-			    }
+			rs.next();
+			int count = rs.getInt("count");
+			if(count > 0){
+				return true;
 			}
-			
 			statement.close();
+			return false;
 		} catch ( Exception e ) {
 			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
 			System.exit(0);
@@ -784,7 +786,41 @@ public class Database {
 		}
 		return null;
 	}
+	
+	
+	/**
+	 * Get all tweet authors(plebs) of which 
+	 * no friends have been crawled yet
+	 */
+	public long[] getPlebsWithoutFriends()
+	{
+		
+		try {
 
+			Statement statement = conn.createStatement();
+			ResultSet rs = statement.executeQuery("SELECT COUNT(authorId) as count FROM plebTweets LEFT JOIN plebFriends ON plebTweets.authorID = plebFriends.pleb WHERE pleb IS NULL");
+			rs.next();
+			int count = rs.getInt("count");
+			long[] plebIds = new long[count];
+			
+			statement = conn.createStatement();
+			rs = statement.executeQuery("SELECT authorId FROM plebTweets LEFT JOIN plebFriends ON plebTweets.authorID = plebFriends.pleb WHERE pleb IS NULL");
+			
+			int i = 0;
+			while (rs.next()) {
+				long id = rs.getLong("authorId");
+				plebIds[i] = id;
+				i++;
+			}
+			statement.close();
+			return plebIds;
+		} catch (Exception e) {
+			System.err.println(e.getClass().getName() + ": " + e.getMessage());
+			System.exit(0);
+		}
+		return null;
+	}
+		
 	public void updateTweets(ArrayList<Tweet> tweets, String table) {
 		String sql;
 		Statement stmt = null;
@@ -843,8 +879,6 @@ public class Database {
 
 			preparedStatement.close();
 			
-			System.out.println("Database Cleaned");
-
 		} catch (SQLException e) {
 
 			System.out.println(e.getMessage());
