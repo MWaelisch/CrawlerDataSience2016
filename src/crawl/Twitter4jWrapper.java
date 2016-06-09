@@ -24,45 +24,44 @@ import twitter4j.conf.ConfigurationBuilder;
 import util.Database;
 
 public class Twitter4jWrapper {
-	
+
 	private Twitter twitter;
 	private Properties config;
-	
+
 	private Database database;
-	
-	public Twitter4jWrapper(Properties config, Database database){
-		
+
+	public Twitter4jWrapper(Properties config, Database database) {
+
 		this.config = config;
 		String apikey = config.getProperty("apikey");
 		String apiSecret = config.getProperty("apisecret");
 		String accessToken = config.getProperty("accessToken");
 		String accessTokenSecret = config.getProperty("accessTokenSecret");
-		
+
 		this.database = database;
-		
+
 		ConfigurationBuilder cb = new ConfigurationBuilder();
-		cb.setDebugEnabled(true)
-		  .setOAuthConsumerKey(apikey)
-		  .setOAuthConsumerSecret(apiSecret)
-		  .setOAuthAccessToken(accessToken)
-		  .setOAuthAccessTokenSecret(accessTokenSecret);
+		cb.setDebugEnabled(true).setOAuthConsumerKey(apikey)
+				.setOAuthConsumerSecret(apiSecret)
+				.setOAuthAccessToken(accessToken)
+				.setOAuthAccessTokenSecret(accessTokenSecret);
 		TwitterFactory tf = new TwitterFactory(cb.build());
 		twitter = tf.getInstance();
 	}
-	
-	public int checkRateLimit(String method){
-			  try {
-				RateLimitStatus status = twitter.getRateLimitStatus().get(method);
-				int limit = status.getRemaining();
-				return limit;
-			} catch (TwitterException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			return 0;
-			  
+
+	public int checkRateLimit(String method) {
+		try {
+			RateLimitStatus status = twitter.getRateLimitStatus().get(method);
+			int limit = status.getRemaining();
+			return limit;
+		} catch (TwitterException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return 0;
+
 	}
-	
+
 	public Vip crawlVip(String vipName) {
 		try {
 			System.out.println("Crawle Userdaten von " + vipName);
@@ -87,7 +86,7 @@ public class Twitter4jWrapper {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Possible requests 60/ 15 min
 	 * 
@@ -97,14 +96,17 @@ public class Twitter4jWrapper {
 
 		try {
 			User user = twitter.showUser(screenName);
-//			System.out.println("@" + user.getScreenName());
-//			System.out.println("ID " + user.getId());
-//			System.out.println("Name " + user.getName());
-//			System.out.println("FollowerCount " + user.getFollowersCount());
-//			System.out.println("Profilepicturemini " + user.getMiniProfileImageURL());
-//			System.out.println("Profilepicture bigger" + user.getBiggerProfileImageURL());
-//			System.out.println("Profilepicture" + user.getOriginalProfileImageURL());
-//			System.out.println("Profilepicture" + user.getProfileImageURL());
+			// System.out.println("@" + user.getScreenName());
+			// System.out.println("ID " + user.getId());
+			// System.out.println("Name " + user.getName());
+			// System.out.println("FollowerCount " + user.getFollowersCount());
+			// System.out.println("Profilepicturemini " +
+			// user.getMiniProfileImageURL());
+			// System.out.println("Profilepicture bigger" +
+			// user.getBiggerProfileImageURL());
+			// System.out.println("Profilepicture" +
+			// user.getOriginalProfileImageURL());
+			// System.out.println("Profilepicture" + user.getProfileImageURL());
 
 			Vip vip = new Vip();
 			vip.setId(user.getId());
@@ -122,35 +124,34 @@ public class Twitter4jWrapper {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Possible Requests 15/ 15min
 	 * 
 	 * @param screenName
 	 */
-	public long[] getFriendsIDs(String screenName){
-        try {
-            long cursor = -1;
-            IDs ids;
-            do {
-                ids = twitter.getFriendsIDs(screenName, cursor);
-//                System.out.println(ids.getIDs().length);
-//                for (long id : ids.getIDs()) {
-//                    System.out.println(id);
-//                }
-                return ids.getIDs();
-            } while ((cursor = ids.getNextCursor()) != 0);
-        } catch (TwitterException te) {
-            te.printStackTrace();
-            System.out.println("Failed to get friends' ids: " + te.getMessage());
-            System.exit(-1);
-        }
+	public long[] getFriendsIDs(String screenName) {
+		try {
+			long cursor = -1;
+			IDs ids;
+			do {
+				ids = twitter.getFriendsIDs(screenName, cursor);
+				// System.out.println(ids.getIDs().length);
+				// for (long id : ids.getIDs()) {
+				// System.out.println(id);
+				// }
+				return ids.getIDs();
+			} while ((cursor = ids.getNextCursor()) != 0);
+		} catch (TwitterException te) {
+			te.printStackTrace();
+			System.out.println("Failed to get friends' ids: " + te.getMessage());
+			System.exit(-1);
+		}
 		return null;
 	}
-	
+
 	/**
-	 * Crawl Tweets from 
-	 * a Vips User Timeline
+	 * Crawl Tweets from a Vips User Timeline
 	 * 
 	 * @param vip
 	 */
@@ -204,123 +205,137 @@ public class Twitter4jWrapper {
 		}
 
 	}
-	
 
 	/**
-	 * Search tweets where 
-	 * a VIP is mentioned
+	 * Search tweets where a VIP is mentioned
 	 * 
 	 * @param vip
 	 */
 	public void searchTweets(Vip vip) {
 		System.out.println("Search for mentions of VIP " + vip.getScreenName());
+		// generate search String (ex.: @kexkuhl OR #kexkuhl OR "YOUNG GOUDA")
 		String q = "@" + vip.getScreenName() + " OR #" + vip.getScreenName() + " OR \"" + vip.getUserName() + "\"";
-//		System.out.println("### vipname-query: " + q);
+		// System.out.println("### vipname-query: " + q);
 		searchTweet(q, vip.getScreenName());
 		System.out.println("Finished search for mentions of VIP" + vip.getScreenName());
 	}
 
-
 	/**
-	 * Possible requests 180/ 15 min
-	 * 	                 450/ 15 min app-only
+	 * Possible requests 180/ 15 min 
+	 * 					 450/ 15 min app-only
 	 * 
-	 * @param searchTweets //todo this is throwing an error in my IDE?
-	 * @return 
+	 * @param searchTweets
+	 * @return
 	 */
-	private void searchTweet(String q, String screenName){
+	private void searchTweet(String q, String screenName) {
 		try {
-			   Query query = new Query(q);
-	           QueryResult result;
-               int count = 0;
-               int leftToCrawl = twitter.getRateLimitStatus().get("/search/tweets").getRemaining();
-	           do {
-	        	   if(leftToCrawl <= 0){
-		               try {
-		            	   System.out.println("Asleep for 15 minutes ...");
-							//180 bzw 450 requests / 15 min
-							Thread.sleep(901000);
-							leftToCrawl = twitter.getRateLimitStatus().get("/search/tweets").getRemaining();
-		               } catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-		               }
-	        	   }
-	        	   
-	               result = twitter.search(query);
-	        	   leftToCrawl--;
-	               List<Status> tweets = result.getTweets();
-	               	//debug
-	               	//System.out.println("tweets: " + tweets.toString());
-	               for (Status tweet : tweets) {
-//	            	   System.out.println("Language: " + tweet.getLang() + "   " + tweet.getText());
-	            	   if(tweet.getLang().matches("de|en")){
-	            		   if(database.isPlebTweetInDB(String.valueOf(tweet.getId()))){
-	            			   long tweetId = database.getTweetId(String.valueOf(tweet.getId()));
-	            			   if(!database.isPlebMentionInDB(tweetId, tweet.getUser().getId())){
-	            				   database.addPlebTweetMentions(tweetId, database.getVipID(screenName));
-	            			   }
-	            		   } else {
-		            		   	count++;
-			                	Tweet plebTweet = new Tweet();
-			                	
-			                	//auto-inc ID
-				            	plebTweet.setAuthorId(tweet.getUser().getId());
-				            	plebTweet.setIdStr(String.valueOf(tweet.getId()));
-				            	plebTweet.setText(tweet.getText());
-				            	plebTweet.setScreenName(tweet.getUser().getScreenName());
-				            	
+			Query query = new Query(q);
+			QueryResult result;
+			int count = 0;
+			// get remaining search-requests
+			int leftToCrawl = twitter.getRateLimitStatus().get("/search/tweets").getRemaining();
+			do {
+				if (leftToCrawl <= 0) {
+					try {
+						System.out.println("Asleep for 15 minutes ...");
+						// 180 bzw 450 requests / 15 min
+						Thread.sleep(901000);
+						// reset search-requests
+						leftToCrawl = twitter.getRateLimitStatus().get("/search/tweets").getRemaining();
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
 
-								UserMentionEntity[] userMentionEntities = tweet.getUserMentionEntities();
-								Long[] userMentions = new Long[userMentionEntities.length];
-								for (int i = 0; i < userMentionEntities.length; i++) {
-									long userMention = userMentionEntities[i].getId();
-									userMentions[i] = userMention;
-								}
-								plebTweet.setMentions(userMentions);
-				            	database.addPlebTweet(plebTweet, database.getVipID(screenName));
-	            		   }
-	            	   }
-	               }
-	           } while ((query = result.nextQuery()) != null /*&& count <= 100*/);
-	           System.out.println("Number of tweets: " + count);
-	       } catch (TwitterException te) {
-	            te.printStackTrace();
-	            System.out.println("Failed to search tweets: " + te.getMessage());
-	            System.exit(-1);
-	       }
+				// search
+				result = twitter.search(query);
+				// count down search-requests
+				leftToCrawl--;
+				List<Status> tweets = result.getTweets();
+				// debug
+				// System.out.println("tweets: " + tweets.toString());
+				for (Status tweet : tweets) {
+					// System.out.println("Language: " + tweet.getLang() + " " +
+					// tweet.getText());
+					// check language via two-letter iso language code
+					if (tweet.getLang().matches("de|en")) {
+						// is plebTweet already in DB?
+						if (database.isPlebTweetInDB(String.valueOf(tweet.getId()))) {
+							// yes: add the currently crawled VIP in case the
+							// VIP was mentioned as username, not screenname
+							long tweetId = database.getTweetId(String.valueOf(tweet.getId()));
+							if (!database.isPlebMentionInDB(tweetId, tweet.getUser().getId())) {
+								database.addPlebTweetMentions(tweetId, database.getVipID(screenName));
+							}
+						} else {
+							// no? add plebTweet
+							count++;
+							Tweet plebTweet = new Tweet();
+
+							// auto-inc ID
+							plebTweet.setAuthorId(tweet.getUser().getId());
+							plebTweet.setIdStr(String.valueOf(tweet.getId()));
+							plebTweet.setText(tweet.getText());
+							plebTweet.setScreenName(tweet.getUser().getScreenName());
+
+							// get and add plebTweetMentions
+							UserMentionEntity[] userMentionEntities = tweet.getUserMentionEntities();
+							Long[] userMentions = new Long[userMentionEntities.length];
+							for (int i = 0; i < userMentionEntities.length; i++) {
+								long userMention = userMentionEntities[i].getId();
+								userMentions[i] = userMention;
+							}
+							plebTweet.setMentions(userMentions);
+							database.addPlebTweet(plebTweet, database.getVipID(screenName));
+						}
+					}
+				}
+			} while ((query = result.nextQuery()) != null /* && count <= 100 */);
+			System.out.println("Number of tweets: " + count);
+		} catch (TwitterException te) {
+			te.printStackTrace();
+			System.out.println("Failed to search tweets: " + te.getMessage());
+			System.exit(-1);
+		}
 	}
-	
+
 	public void crawlPlebFriends() {
 		try {
 			System.out.println("Start crawling PlebFriends");
 			long[] plebIds = database.getRelevantPlebsWithoutFriends();
 
-			//15 getFriends request available
+			// 15 getFriends request available
 			int tillWait = this.checkRateLimit("/friends/ids");
 			for (long plebId : plebIds) {
 				Pleb pleb = new Pleb();
 				pleb.setId(plebId);
+
 				if (tillWait < 1) {
 					System.out.println("Sleep 15 minutes...");
 					Thread.sleep(901000);
 					tillWait = this.checkRateLimit("/friends/ids");
 				}
+
 				System.out.println("add: " + plebId);
 				long[] friendList;
 
+				// getUser for protected-check and getScreenName
 				User user = twitter.showUser(plebId);
 				if (user.isProtected()) {
 					System.out.println("User is protected :(");
-//					database.cleanProtectedPleb(plebId);
+					// database.cleanProtectedPleb(plebId);
 					// TODO do this in postprocessing not here
 				} else {
+					// getFriends and count down remaining requests
 					friendList = this.getFriendsIDs(user.getScreenName());
 					tillWait--;
+
 					Long[] friends = new Long[friendList.length];
 					for (int i = 0; i < friendList.length; i++) {
 						friends[i] = new Long(friendList[i]);
 					}
+
 					pleb.setFriends(friends);
 					database.addPlebFriends(pleb);
 				}
@@ -328,16 +343,5 @@ public class Twitter4jWrapper {
 		} catch (TwitterException | InterruptedException e) {
 			e.printStackTrace();
 		}
-
 	}
-
 }
-
-
-
-
-
-
-
-
-

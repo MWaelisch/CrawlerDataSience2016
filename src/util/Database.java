@@ -228,7 +228,7 @@ public class Database {
 		try {
 			Statement statement = conn.createStatement();
 			ResultSet rs = statement.executeQuery("SELECT * FROM vip WHERE screenName = '" + screenName + "';");
-			// fkt??
+			
 			if (rs.next()) {
 				return rs.getLong("ID");
 			}
@@ -241,7 +241,7 @@ public class Database {
 
 	public void addPlebTweet(Tweet plebTweet, long vipId){
 		addPlebTweetData(plebTweet);
-		//falls tweet erfolgreich eingefügt wurde -> füge mentions in db ein
+		//falls tweet erfolgreich eingefuegt wurde -> fuege mentions in db ein
 		if(plebTweet.getGeneratedId() != 0){
 			for(long mention : plebTweet.getMentions()){
 				addPlebTweetMentions(plebTweet.getGeneratedId(), mention);
@@ -367,6 +367,9 @@ public class Database {
 		}
 	}
 
+	// id: id to search for
+	// idName: id, authorId, tweetId, ...
+	// db: table-name
 	public boolean isIDInDB(long id, String idName, String db) {
 		try {
 			Statement statement = conn.createStatement();
@@ -375,7 +378,6 @@ public class Database {
 					.executeQuery("SELECT " + idName + " FROM " + db + " WHERE " + idName + " = " + id + ";");
 
 			if (rs.next()) {
-				// long getid =
 				rs.getInt(idName);
 				if (rs.wasNull()) {
 					return false;
@@ -398,7 +400,6 @@ public class Database {
 			ResultSet rs = statement.executeQuery( "SELECT idStr FROM plebTweets WHERE idStr = '" + id + "';" );
 
 			if (rs.next()) {
-				//long getid =
 			    rs.getString("idStr");
 			    if (rs.wasNull()) {
 			    	System.out.println("Tweet was not in DB");
