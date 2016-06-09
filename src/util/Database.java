@@ -563,14 +563,15 @@ public class Database {
             Statement tweetStatement = conn.createStatement();
 			Statement friendStatement = conn.createStatement();
 
-            ResultSet rsPleb = plebStatement.executeQuery("SELECT * FROM plebTweets ORDER BY authorId ASC;");
+            ResultSet rsPleb = plebStatement.executeQuery("SELECT * FROM plebTweets LEFT JOIN plebFriends ON authorId = pleb WHERE friend IN (SELECT id FROM vip)" +
+            " ORDER BY authorId ASC;");
 
             while (rsPleb.next()) {
                 plebId = rsPleb.getLong("authorId");
-				ResultSet rsFriends = friendStatement.executeQuery("SELECT  * FROM plebFriends WHERE pleb = "+ plebId +";");
+				ResultSet rsFriends = friendStatement.executeQuery("SELECT  * FROM plebFriends WHERE pleb = "+ plebId +" AND friend IN (SELECT id FROM vip);");
                 //check for all mentions in this tweet
                 tweetId = rsPleb.getInt("id");
-                ResultSet rsMention = tweetStatement.executeQuery("SELECT * FROM plebTweetMentions WHERE plebTweetId = " + tweetId + ";");
+                ResultSet rsMention = tweetStatement.executeQuery("SELECT * FROM plebTweetMentions WHERE plebTweetId = " + tweetId + " AND mention IN (SELECT id FROM vip);");
 
                 //construct tweet
                 Tweet tweet = new Tweet();
@@ -721,7 +722,12 @@ public class Database {
 		ArrayList<VipTweet> vipTweets = new ArrayList<VipTweet>();
 		try {
 			Statement statement = conn.createStatement();
-			ResultSet rs = statement.executeQuery("SELECT * FROM vipTweets WHERE authorId=" + authorId + ";");
+			//Hole alle tweets des authors, bei denen entweder 
+			//auf den Tweet eines anderen Vip geantwortet wird, 
+			//ein anderer Vip retweetet wird
+			//oder ein anderer vip erwähnt wird
+			ResultSet rs = statement.executeQuery("SELECT * FROM vipTweets LEFT JOIN vipTweetMentions WHERE"
+					+ " authorId=" + authorId + " AND " + " (inReplyTo IN (SELECT id FROM vip)  OR mention IN (SELECT id FROM vip) OR retweetOrigin IN (SELECT id FROM vip));");
 			while (rs.next()) {
 				VipTweet t = new VipTweet();
 				t.setAuthorId(rs.getLong("authorId"));
@@ -737,12 +743,16 @@ public class Database {
 
 			for (VipTweet tweet : vipTweets) {
 
+				//hole alle mentions zu einem tweet, die einen anderen vip referenzieren
 				rs = statement.executeQuery(
-						"SELECT COUNT(*) as count FROM VipTweetMentions WHERE vipTweetId=" + tweet.getGeneratedId());
+						"SELECT COUNT(*) as count FROM VipTweetMentions WHERE vipTweetId=" + tweet.getGeneratedId() 
+						+ " AND mention IN (SELECT id FROM vip)");
 				rs.next();
 				int count = rs.getInt("count");
 				Long[] mentions = new Long[count];
-				rs = statement.executeQuery("SELECT * FROM VipTweetMentions WHERE vipTweetId=" + tweet.getGeneratedId());
+				rs = statement.executeQuery(
+						"SELECT * FROM VipTweetMentions WHERE vipTweetId=" + tweet.getGeneratedId() 
+						+ " AND mention IN (SELECT id FROM vip)");
 				int i=0;
 				while(rs.next()){
 					mentions[i] = rs.getLong("mention");
@@ -764,13 +774,16 @@ public class Database {
 
 			Statement statement = conn.createStatement();
 
-			ResultSet rs = statement.executeQuery("SELECT COUNT(*) as count FROM vipFriends WHERE vip=" + vipId);
+			//Hole alle Freunde eines Vips, die ebenfalls vip sind
+			ResultSet rs = statement.executeQuery("SELECT COUNT(*) as count FROM vipFriends WHERE vip=" + vipId +
+												 " AND friend IN (SELECT id FROM vip)");
 			rs.next();
 			int count = rs.getInt("count");
 
 			long[] vipFriends = new long[count];
 
-			rs = statement.executeQuery("SELECT * FROM vipFriends WHERE vip=" + vipId);
+			rs = statement.executeQuery("SELECT * as count FROM vipFriends WHERE vip=" + vipId +
+					 " AND friend IN (SELECT id FROM vip)");
 
 			int i = 0;
 			while (rs.next()) {
@@ -791,20 +804,21 @@ public class Database {
 	/**
 	 * Get all tweet authors(plebs) of which 
 	 * no friends have been crawled yet
+	 * and which are relevant -> they are author of a Tweet with sentiment other than -1/1
 	 */
-	public long[] getPlebsWithoutFriends()
+	public long[] getRelevantPlebsWithoutFriends()
 	{
 		
 		try {
 
 			Statement statement = conn.createStatement();
-			ResultSet rs = statement.executeQuery("SELECT COUNT(authorId) as count FROM plebTweets LEFT JOIN plebFriends ON plebTweets.authorID = plebFriends.pleb WHERE pleb IS NULL");
+			ResultSet rs = statement.executeQuery("SELECT COUNT(authorId) as count FROM plebTweets LEFT JOIN plebFriends ON plebTweets.authorID = plebFriends.pleb WHERE pleb IS NULL AND (sentimentPos > 1 OR sentimentNeg < -1)");
 			rs.next();
 			int count = rs.getInt("count");
 			long[] plebIds = new long[count];
 			
 			statement = conn.createStatement();
-			rs = statement.executeQuery("SELECT authorId FROM plebTweets LEFT JOIN plebFriends ON plebTweets.authorID = plebFriends.pleb WHERE pleb IS NULL");
+			rs = statement.executeQuery("SELECT authorId FROM plebTweets LEFT JOIN plebFriends ON plebTweets.authorID = plebFriends.pleb WHERE pleb IS NULL AND (sentimentPos > 1 OR sentimentNeg < -1)");
 			
 			int i = 0;
 			while (rs.next()) {
@@ -839,213 +853,214 @@ public class Database {
 		}
 	}
 
-	public void cleanVips() {
-
-		System.out.println("Cleaning Vip Data in Database");
-		PreparedStatement preparedStatement = null;
-
-		// Lösche alle viptweets die nicht bezug auf einen anderen vip nehmen
-		String removeUnnecessaryVipTweets = "DELETE FROM vipTweets "
-				+ "WHERE retweetOrigin NOT IN (SELECT id FROM vip) " + "AND inReplyTo NOT IN (SELECT id FROM vip)"
-				+ "AND NOT EXISTS (SELECT * FROM vipTweetMentions,vip WHERE vipTweetId=vipTweets.id AND mention=vip.id)";
-
-		// lösche alle mentions, zu denen der tweet nichtmehr existiert-> siehe
-		// removeUnnecessaryVipTweets
-		// und alle unnötigen mentions, also mentions die nicht auf einen vip
-		// verweisen
-		String removeUnnecessaryVipTweetMentions = "DELETE FROM vipTweetMentions "
-				+ "WHERE vipTweetid NOT IN (SELECT id FROM vipTweets)" + "OR mention NOT IN (SELECT id FROM vip)";
-
-		// lösche alle freunde von vips die selbst keine vips sind
-		String removeUnnecessaryVipFriends = "DELETE FROM vipFriends " + "WHERE friend NOT IN (SELECT id FROM vip)";
-
-		try {
-
-			preparedStatement = conn.prepareStatement(removeUnnecessaryVipTweets);
-
-			preparedStatement.executeUpdate();
-
-			preparedStatement.close();
-
-			preparedStatement = conn.prepareStatement(removeUnnecessaryVipTweetMentions);
-
-			preparedStatement.executeUpdate();
-
-			preparedStatement.close();
-
-			preparedStatement = conn.prepareStatement(removeUnnecessaryVipFriends);
-
-			preparedStatement.executeUpdate();
-
-			preparedStatement.close();
-			
-		} catch (SQLException e) {
-
-			System.out.println(e.getMessage());
-
-		} finally {
-
-			if (preparedStatement != null) {
-				try {
-					preparedStatement.close();
-				} catch (SQLException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}
-	}
-
-	public void cleanNeutralSentiScorePlebTweets() {
-
-		PreparedStatement preparedStatement = null;
-
-		String removeUnnecessaryPlebTweets = "DELETE FROM plebTweets " + "WHERE sentimentPos = 1 AND sentimentNeg = -1";
-
-		try {
-
-			preparedStatement = conn.prepareStatement(removeUnnecessaryPlebTweets);
-
-			preparedStatement.executeUpdate();
-
-			preparedStatement.close();
-		} catch (SQLException e) {
-
-			System.out.println(e.getMessage());
-
-		} finally {
-
-			if (preparedStatement != null) {
-				try {
-					preparedStatement.close();
-				} catch (SQLException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}
-	}
-
-	public void cleanProtectedPleb(long tweetId) {
-
-		PreparedStatement preparedStatement = null;
-
-		String removeFromPlebTweets = "DELETE FROM plebTweets " + "WHERE id = " + tweetId;
-
-		String removeFromPlebTweetMentions = "DELETE FROM plebTweetMentions " + "WHERE plebTweetId = " + tweetId;
-
-		try {
-
-			preparedStatement = conn.prepareStatement(removeFromPlebTweets);
-			preparedStatement.executeUpdate();
-			preparedStatement.close();
-
-			System.out.println("deleted plebTweet");
-
-			preparedStatement = conn.prepareStatement(removeFromPlebTweetMentions);
-			preparedStatement.executeUpdate();
-			preparedStatement.close();
-
-			System.out.println("deleted plebTweetMention");
-		} catch (SQLException e) {
-
-			System.out.println(e.getMessage());
-
-		} finally {
-
-			if (preparedStatement != null) {
-				try {
-					preparedStatement.close();
-				} catch (SQLException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}
-	}
-	
-	//todo tweeten uU auch ueber andere Vips (aber anscheinend nicht viele)
-	//todo stimmt removePlebTweet?
-	public void cleanPlebFriends(){
-		PreparedStatement preparedStatement = null;
-		String removeFromPlebFriends = "DELETE FROM plebTweets " + "WHERE friend = 0";
-
-		String removePlebTweetOneMention = "DELETE FROM plebTweets " + "WHERE id IN (SELECT id "
-				+ "FROM plebTweetMentions pm " + "JOIN plebTweets pt ON pm.plebTweetId = pt.id "
-				+ "JOIN plebFriends pf ON pt.authorId = pf.pleb " + "WHERE pf.friend = 0 "
-				+ "GROUP BY pt.authorId HAVING COUNT(pm.mention) < 2)";
-
-		// DELETE plebTweets, PlebTweetMentions,plebFriends FROM plebTweets JOIN
-		// plebTweetmentions ON plebTweetId = plebTweets.id JOIN plebFriends ON
-		// authorId = pleb WHErE authorId IN (SELECT authorId
-		// FROM plebTweetMentions pm
-		// JOIN plebTweets pt ON pm.plebTweetId = pt.id
-		// JOIN plebFriends pf ON pt.authorId = pf.pleb
-		// WHERE pf.friend = 0
-		// GROUP BY pt.authorId HAVING COUNT(pm.mention) >= 2) AND NOT text LIKE
-		// '%Youtube%'ORDER BY authorId
-		//
-		//
-		String removeWithoutYoutube = "DELETE FROM plebTweets " + "WHERE id IN (SELECT id "
-				+ "FROM plebTweetMentions pm " + "JOIN plebTweets pt ON pm.plebTweetId = pt.id " + "WHERE authorId IN "
-				+ "(SELECT authorId FROM plebTweetMentions pm " + "JOIN plebTweets pt ON pm.plebTweetId = pt.id "
-				+ "JOIN plebFriends pf ON pt.authorId = pf.pleb " + "WHERE pf.friend=0 "
-				+ "GROUP BY pt.authorId HAVING COUNT(pm.mention) >= 2) AND NOT text LIKE '%Youtube%')";
-//DELETE FROM plebTweets WHERE authorId IN (SELECT authorId
-//    FROM plebTweetMentions pm 
-//    JOIN plebTweets pt ON pm.plebTweetId = pt.id 
-//    JOIN plebFriends pf ON pt.authorId = pf.pleb 
-//    WHERE pf.friend=0 
-//    GROUP BY pt.authorId HAVING COUNT(pm.mention) >= 2) AND NOT text LIKE '%Youtube%';
-//    
-//DELETE FROM plebTweetMentions WHERE plebTweetId NOT IN (SELECT id FROM plebTweets);
-		
-
-		String removeSuspendedOrDeleted = "DELETE FROM plebTweets "
-				+ "WHERE id IN (SELECT id "
-				+ "FROM plebTweetMentions pm "
-				+ "JOIN plebTweets pt ON pm.plebTweetId = pt.id "
-				+ "WHERE pt.authorId NOT IN (SELECT pleb FROM plebFriends))";
-
-		String removePlebTweetMentions = "DELETE FROM plebTweetMentions "
-				+ "WHERE plebTweetId NOT IN "
-				+ "(SELECT id FROM plebTweets)";
-
-		try {
-			preparedStatement = conn.prepareStatement(removePlebTweetOneMention);
-			preparedStatement.executeUpdate();
-			preparedStatement.close();
-
-			preparedStatement = conn.prepareStatement(removeWithoutYoutube);
-			preparedStatement.executeUpdate();
-			preparedStatement.close();
-
-			preparedStatement = conn.prepareStatement(removeSuspendedOrDeleted);
-			preparedStatement.executeUpdate();
-			preparedStatement.close();
-
-			preparedStatement = conn.prepareStatement(removePlebTweetMentions);
-			preparedStatement.executeUpdate();
-			preparedStatement.close();
-
-//			preparedStatement = conn.prepareStatement(removeFromPlebFriends);
+//	public void cleanVips() {
+//
+//		System.out.println("Cleaning Vip Data in Database");
+//		PreparedStatement preparedStatement = null;
+//
+//		// Lösche alle viptweets die nicht bezug auf einen anderen vip nehmen
+//		String removeUnnecessaryVipTweets = "DELETE FROM vipTweets "
+//				+ "WHERE retweetOrigin NOT IN (SELECT id FROM vip) " + "AND inReplyTo NOT IN (SELECT id FROM vip)"
+//				+ "AND NOT EXISTS (SELECT * FROM vipTweetMentions,vip WHERE vipTweetId=vipTweets.id AND mention=vip.id)";
+//
+//		// lösche alle mentions, zu denen der tweet nichtmehr existiert-> siehe
+//		// removeUnnecessaryVipTweets
+//		// und alle unnötigen mentions, also mentions die nicht auf einen vip
+//		// verweisen
+//		String removeUnnecessaryVipTweetMentions = "DELETE FROM vipTweetMentions "
+//				+ "WHERE vipTweetid NOT IN (SELECT id FROM vipTweets)" + "OR mention NOT IN (SELECT id FROM vip)";
+//
+//		// lösche alle freunde von vips die selbst keine vips sind
+//		String removeUnnecessaryVipFriends = "DELETE FROM vipFriends " + "WHERE friend NOT IN (SELECT id FROM vip)";
+//
+//		try {
+//
+//			preparedStatement = conn.prepareStatement(removeUnnecessaryVipTweets);
+//
+//			preparedStatement.executeUpdate();
+//
+//			preparedStatement.close();
+//
+//			preparedStatement = conn.prepareStatement(removeUnnecessaryVipTweetMentions);
+//
+//			preparedStatement.executeUpdate();
+//
+//			preparedStatement.close();
+//
+//			preparedStatement = conn.prepareStatement(removeUnnecessaryVipFriends);
+//
+//			preparedStatement.executeUpdate();
+//
+//			preparedStatement.close();
+//			
+//		} catch (SQLException e) {
+//
+//			System.out.println(e.getMessage());
+//
+//		} finally {
+//
+//			if (preparedStatement != null) {
+//				try {
+//					preparedStatement.close();
+//				} catch (SQLException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+//			}
+//		}
+//	}
+//
+//	public void cleanNeutralSentiScorePlebTweets() {
+//
+//		PreparedStatement preparedStatement = null;
+//
+//		String removeUnnecessaryPlebTweets = "DELETE FROM plebTweets " + "WHERE sentimentPos = 1 AND sentimentNeg = -1";
+//
+//		try {
+//
+//			preparedStatement = conn.prepareStatement(removeUnnecessaryPlebTweets);
+//
+//			preparedStatement.executeUpdate();
+//
+//			preparedStatement.close();
+//		} catch (SQLException e) {
+//
+//			System.out.println(e.getMessage());
+//
+//		} finally {
+//
+//			if (preparedStatement != null) {
+//				try {
+//					preparedStatement.close();
+//				} catch (SQLException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+//			}
+//		}
+//	}
+//
+//	public void cleanProtectedPlebs(long tweetId) {
+//
+//		PreparedStatement preparedStatement = null;
+//
+//		String removeFromPlebTweets = "DELETE FROM plebTweets LEFT JOIN plebTweetMentions ON id = plebTweetId WHERE id=NULL";
+//
+//		String removeFromPlebTweetMentions = "DELETE FROM plebTweetMentions " + "WHERE plebTweetId = " + tweetId;
+//
+//		try {
+//
+//			preparedStatement = conn.prepareStatement(removeFromPlebTweets);
 //			preparedStatement.executeUpdate();
 //			preparedStatement.close();
-			System.out.println("deleted plebFriends");
-		} catch (SQLException e) {
-
-			System.out.println(e.getMessage());
-
-		} finally {
-
-			if (preparedStatement != null) {
-				try {
-					preparedStatement.close();
-				} catch (SQLException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}
-	}
+//
+//			System.out.println("deleted plebTweet");
+//
+//			preparedStatement = conn.prepareStatement(removeFromPlebTweetMentions);
+//			preparedStatement.executeUpdate();
+//			preparedStatement.close();
+//
+//			System.out.println("deleted plebTweetMention");
+//		} catch (SQLException e) {
+//
+//			System.out.println(e.getMessage());
+//
+//		} finally {
+//
+//			if (preparedStatement != null) {
+//				try {
+//					preparedStatement.close();
+//				} catch (SQLException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+//			}
+//		}
+//	}
+//	
+//	//todo tweeten uU auch ueber andere Vips (aber anscheinend nicht viele)
+//	//todo stimmt removePlebTweet?
+//	public void cleanPlebFriends(){
+//		PreparedStatement preparedStatement = null;
+//		String removeFromPlebFriends = "DELETE FROM plebTweets " + "WHERE friend = 0";
+//
+//		String removePlebTweetOneMention = "DELETE FROM plebTweets " + "WHERE id IN (SELECT id "
+//				+ "FROM plebTweetMentions pm " + "JOIN plebTweets pt ON pm.plebTweetId = pt.id "
+//				+ "JOIN plebFriends pf ON pt.authorId = pf.pleb " + "WHERE pf.friend = 0 "
+//				+ "GROUP BY pt.authorId HAVING COUNT(pm.mention) < 2)";
+//
+//		// DELETE plebTweets, PlebTweetMentions,plebFriends FROM plebTweets JOIN
+//		// plebTweetmentions ON plebTweetId = plebTweets.id JOIN plebFriends ON
+//		// authorId = pleb WHErE authorId IN (SELECT authorId
+//		// FROM plebTweetMentions pm
+//		// JOIN plebTweets pt ON pm.plebTweetId = pt.id
+//		// JOIN plebFriends pf ON pt.authorId = pf.pleb
+//		// WHERE pf.friend = 0
+//		// GROUP BY pt.authorId HAVING COUNT(pm.mention) >= 2) AND NOT text LIKE
+//		// '%Youtube%'ORDER BY authorId
+//		//
+//		//
+//		String removeWithoutYoutube = "DELETE FROM plebTweets " + "WHERE id IN (SELECT id "
+//				+ "FROM plebTweetMentions pm " + "JOIN plebTweets pt ON pm.plebTweetId = pt.id " + "WHERE authorId IN "
+//				+ "(SELECT authorId FROM plebTweetMentions pm " + "JOIN plebTweets pt ON pm.plebTweetId = pt.id "
+//				+ "JOIN plebFriends pf ON pt.authorId = pf.pleb " + "WHERE pf.friend=0 "
+//				+ "GROUP BY pt.authorId HAVING COUNT(pm.mention) >= 2) AND NOT text LIKE '%Youtube%')";
+////DELETE FROM plebTweets WHERE authorId IN (SELECT authorId
+////    FROM plebTweetMentions pm 
+////    JOIN plebTweets pt ON pm.plebTweetId = pt.id 
+////    JOIN plebFriends pf ON pt.authorId = pf.pleb 
+////    WHERE pf.friend=0 
+////    GROUP BY pt.authorId HAVING COUNT(pm.mention) >= 2) AND NOT text LIKE '%Youtube%';
+////    
+////DELETE FROM plebTweetMentions WHERE plebTweetId NOT IN (SELECT id FROM plebTweets);
+//		
+//
+//		//check ob author von tweet in plebfriends -> falls nicht -> lösche alle tweets + mentions seiner tweets
+//		String removeSuspendedOrDeleted = "DELETE FROM plebTweets "
+//				+ "WHERE id IN (SELECT id "
+//				+ "FROM plebTweetMentions pm "
+//				+ "JOIN plebTweets pt ON pm.plebTweetId = pt.id "
+//				+ "WHERE pt.authorId NOT IN (SELECT pleb FROM plebFriends))";
+//
+//		String removePlebTweetMentions = "DELETE FROM plebTweetMentions "
+//				+ "WHERE plebTweetId NOT IN "
+//				+ "(SELECT id FROM plebTweets)";
+//
+//		try {
+//			preparedStatement = conn.prepareStatement(removePlebTweetOneMention);
+//			preparedStatement.executeUpdate();
+//			preparedStatement.close();
+//
+//			preparedStatement = conn.prepareStatement(removeWithoutYoutube);
+//			preparedStatement.executeUpdate();
+//			preparedStatement.close();
+//
+//			preparedStatement = conn.prepareStatement(removeSuspendedOrDeleted);
+//			preparedStatement.executeUpdate();
+//			preparedStatement.close();
+//
+//			preparedStatement = conn.prepareStatement(removePlebTweetMentions);
+//			preparedStatement.executeUpdate();
+//			preparedStatement.close();
+//
+////			preparedStatement = conn.prepareStatement(removeFromPlebFriends);
+////			preparedStatement.executeUpdate();
+////			preparedStatement.close();
+//			System.out.println("deleted plebFriends");
+//		} catch (SQLException e) {
+//
+//			System.out.println(e.getMessage());
+//
+//		} finally {
+//
+//			if (preparedStatement != null) {
+//				try {
+//					preparedStatement.close();
+//				} catch (SQLException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+//			}
+//		}
+//	}
 }

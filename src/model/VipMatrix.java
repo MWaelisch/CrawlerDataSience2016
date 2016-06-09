@@ -83,12 +83,16 @@ public class VipMatrix {
             //System.out.println("VIP "+i+": ,"+Arrays.toString(vipRelationMatrix[i]));
         }
     }
+    
+    /**
+     * Pleb erwähnt vip und hat vip freund -> erhöhe Freundschaftswert für beide Vips
+     */
     public void calculatePlebMentions(){
         for(Pleb pleb : plebs){
             for(Tweet tweet : pleb.getTweets()){
                 for(long mention : tweet.getMentions()){
                     for(long friend : pleb.getFriends()){
-                        if(vipIdMap.containsKey(mention) && vipIdMap.containsKey(friend)){
+                        if(vipIdMap.containsKey(mention) && vipIdMap.containsKey(friend) && mention != friend){
                             vipRelationMatrix[vipIdMap.get(friend)][vipIdMap.get(mention)] += tweet.getSentiment()*PLEBMENTIONVALUE;
                             vipRelationMatrix[vipIdMap.get(mention)][vipIdMap.get(friend)] += tweet.getSentiment()*PLEBMENTIONVALUE;
                         }
@@ -98,6 +102,9 @@ public class VipMatrix {
         }
     }
 
+    /**
+     * Pleb hat zwei verschiedene vip freunde 
+     */
     public void calculatePlebFriendships() {
         for (Pleb pleb : plebs) {
             for (long friend1 : pleb.getFriends()) {

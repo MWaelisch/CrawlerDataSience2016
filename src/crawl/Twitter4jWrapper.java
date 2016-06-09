@@ -292,64 +292,51 @@ public class Twitter4jWrapper {
 	}
 	
 	public void crawlPlebFriends() {
+		try {
+			System.out.println("Start crawling PlebFriends");
+			long[] plebIds = database.getRelevantPlebsWithoutFriends();
 
-		System.out.println("Start crawling PlebFriends");
-		long[] plebIds = database.getPlebsWithoutFriends();
-
-		int tillWait = 15;
-		int leftToShow = this.checkRateLimit("/users/show/:id");
-		for (long plebId : plebIds) {
-			Pleb pleb = new Pleb();
-			pleb.setId(plebId);
-			if (tillWait < 1) {
-				try {
+			//15 getFriends request available
+			int tillWait = this.checkRateLimit("/friends/ids");
+			//getUser left
+			int leftToShow = this.checkRateLimit("/users/show/:id");
+			for (long plebId : plebIds) {
+				Pleb pleb = new Pleb();
+				pleb.setId(plebId);
+				if (tillWait < 1) {
 					System.out.println("Sleep 15 minutes...");
 					Thread.sleep(901000);
-					tillWait = 15;
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-					// database.closeConnection();
+					tillWait = this.checkRateLimit("/friends/ids");
 				}
-			}
-			System.out.println("add: " + plebId);
-			long[] friendList;
-			try {
+				System.out.println("add: " + plebId);
+				long[] friendList;
+
 				if (leftToShow <= 1) {
-					leftToShow = this.checkRateLimit("/users/show/:id");
-					if (leftToShow <= 1) {
-						try {
-							System.out.println("Sleep 15 minutes...");
-							Thread.sleep(901000);
-							leftToShow = this.checkRateLimit("/users/show/:id");
-						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					}
+						System.out.println("Sleep 15 minutes...");
+						Thread.sleep(901000);
+						leftToShow = this.checkRateLimit("/users/show/:id");
 				}
 				User user = twitter.showUser(plebId);
 				leftToShow--;
 				if (user.isProtected()) {
 					System.out.println("User is protected :(");
-					// database.cleanProtectedPleb(plebId);
+//					database.cleanProtectedPleb(plebId);
 					// TODO do this in postprocessing not here
 				} else {
 					friendList = this.getFriendsIDs(user.getScreenName());
 					tillWait--;
 					Long[] friends = new Long[friendList.length];
-					for (int i =0; i< friendList.length;i++) {
+					for (int i = 0; i < friendList.length; i++) {
 						friends[i] = new Long(friendList[i]);
 					}
 					pleb.setFriends(friends);
 					database.addPlebFriends(pleb);
 				}
-			} catch (TwitterException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
-
+		} catch (TwitterException | InterruptedException e) {
+			e.printStackTrace();
 		}
+
 	}
 
 }
