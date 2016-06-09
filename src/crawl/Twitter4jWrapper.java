@@ -298,8 +298,6 @@ public class Twitter4jWrapper {
 
 			//15 getFriends request available
 			int tillWait = this.checkRateLimit("/friends/ids");
-			//getUser left
-			int leftToShow = this.checkRateLimit("/users/show/:id");
 			for (long plebId : plebIds) {
 				Pleb pleb = new Pleb();
 				pleb.setId(plebId);
@@ -311,13 +309,7 @@ public class Twitter4jWrapper {
 				System.out.println("add: " + plebId);
 				long[] friendList;
 
-				if (leftToShow <= 1) {
-						System.out.println("Sleep 15 minutes...");
-						Thread.sleep(901000);
-						leftToShow = this.checkRateLimit("/users/show/:id");
-				}
 				User user = twitter.showUser(plebId);
-				leftToShow--;
 				if (user.isProtected()) {
 					System.out.println("User is protected :(");
 //					database.cleanProtectedPleb(plebId);
