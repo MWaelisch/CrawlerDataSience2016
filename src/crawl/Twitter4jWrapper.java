@@ -256,6 +256,7 @@ public class Twitter4jWrapper {
 	               result = twitter.search(query);
 	        	   leftToCrawl--;
 	               List<Status> tweets = result.getTweets();
+	               
 	               	//debug
 	               	//System.out.println("tweets: " + tweets.toString());
 	               for (Status tweet : tweets) {
@@ -288,7 +289,7 @@ public class Twitter4jWrapper {
 	            		   }
 	            	   }
 	               }
-	           } while ((query = result.nextQuery()) != null /*&& count <= 100*/);
+	           } while ((query = result.nextQuery()) != null && count <= 200);
 	           System.out.println("Number of tweets: " + count);
 	       } catch (TwitterException te) {
 	            te.printStackTrace();
