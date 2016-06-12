@@ -65,22 +65,27 @@ public class Twitter4jWrapper {
 	
 	public Vip crawlVip(String vipName) {
 		try {
-			System.out.println("Crawle Userdaten von " + vipName);
-			Vip vip = this.lookupUser(vipName);
-			System.out.println("Userdaten gecrawled");
+			//crawl only if vip is not already in DB
+			if (!database.isVipInDb(vipName)) {
+				System.out.println("Crawle Userdaten von " + vipName);
+				Vip vip = this.lookupUser(vipName);
+				System.out.println("Userdaten gecrawled");
 
-			if (this.checkRateLimit("/friends/ids") <= 1) {
-				System.out.println("Sleep 15 minutes...");
-				Thread.sleep(901000);
+				if (this.checkRateLimit("/friends/ids") <= 1) {
+					System.out.println("Sleep 15 minutes...");
+					Thread.sleep(901000);
+				}
+				System.out.println("Crawle Friends von " + vip.getScreenName());
+				long[] friends = this.getFriendsIDs(vip.getScreenName());
+				vip.setFriends(friends);
+				database.addVip(vip);
+				System.out.println("Friends gecrawled");
+
+				System.out.println("Finished");
+				return vip;
+			}else{
+				System.out.println("VIP " + vipName + " is already in DB");
 			}
-			System.out.println("Crawle Friends von " + vip.getScreenName());
-			long[] friends = this.getFriendsIDs(vip.getScreenName());
-			vip.setFriends(friends);
-			database.addVip(vip);
-			System.out.println("Friends gecrawled");
-
-			System.out.println("Finished");
-			return vip;
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -217,7 +222,7 @@ public class Twitter4jWrapper {
 		String q = "@" + vip.getScreenName() + " OR #" + vip.getScreenName() + " OR \"" + vip.getUserName() + "\"";
 //		System.out.println("### vipname-query: " + q);
 		searchTweet(q, vip.getScreenName());
-		System.out.println("Finished search for mentions of VIP" + vip.getScreenName());
+		System.out.println("Finished searching for mentions of VIP" + vip.getScreenName());
 	}
 
 
@@ -255,7 +260,7 @@ public class Twitter4jWrapper {
 	               for (Status tweet : tweets) {
 //	            	   System.out.println("Language: " + tweet.getLang() + "   " + tweet.getText());
 	            	   if(tweet.getLang().matches("de|en")){
-	            		   if(database.isPlebTweetInDB(String.valueOf(tweet.getId()))){
+	            		   if(database.isTweetInDb(String.valueOf(tweet.getId()),"plebTweets")){
 	            			   long tweetId = database.getTweetId(String.valueOf(tweet.getId()));
 	            			   if(!database.isPlebMentionInDB(tweetId, tweet.getUser().getId())){
 	            				   database.addPlebTweetMentions(tweetId, database.getVipID(screenName));
@@ -312,8 +317,6 @@ public class Twitter4jWrapper {
 				User user = twitter.showUser(plebId);
 				if (user.isProtected()) {
 					System.out.println("User is protected :(");
-//					database.cleanProtectedPleb(plebId);
-					// TODO do this in postprocessing not here
 				} else {
 					friendList = this.getFriendsIDs(user.getScreenName());
 					tillWait--;

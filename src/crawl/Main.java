@@ -19,7 +19,7 @@ public class Main {
 		Properties config = getConfig();
 		try {
 			//create subdirectory for the databases
-			Utility.makeDir("databases");
+			Utility.makeDir("database");
 			
 		    if(args.length == 0 || args.length == 1)
 		    {
@@ -32,37 +32,24 @@ public class Main {
 			// crawl all vip data and clean the database
 			// example call:  java -jar testScience.jar crawl HipHopVips.csv
 			if (args[0].equals("crawl")) {
-				Database rawDatabase = new Database("databases/raw.db");
+				Database rawDatabase = new Database("database/crawlerData.db");
 				Twitter4jWrapper wrapper = new Twitter4jWrapper(config, rawDatabase);
 				CSVParser parser = new CSVParser(args[1]);
 				ArrayList<String> vipNames = parser.parseVips();
 				SentiStrengthWrapper sentiStrength = new SentiStrengthWrapper();
 				for(String vipName : vipNames){
+					
 					Vip vip = wrapper.crawlVip(vipName);
 					wrapper.crawlVipTweets(vip);
 					wrapper.searchTweets(vip);
+					sentiStrength.setDatabase(rawDatabase);
+					sentiStrength.calculateSentiScore("plebTweets");
+					sentiStrength.calculateSentiScore("vipTweets");
 					wrapper.crawlPlebFriends();
 				}
 				//calculate the SentiScore for all Tweets
-				sentiStrength.setDatabase(rawDatabase);
-				sentiStrength.calculateSentiScore("plebTweets");
-				sentiStrength.calculateSentiScore("vipTweets");
+
 				rawDatabase.closeConnection();
-				
-//	            //delete current clean version of db if exists
-//				File rawDb = new File("databases/raw.db");
-//	            File cleanedDb = new File("databases/cleaned.db");
-//	            if(cleanedDb.exists()) { 
-//            	   FileUtils.forceDelete(cleanedDb);
-//	            }
-////				//copy database to save raw version
-//				FileUtils.copyFile(rawDb, cleanedDb);
-//				//establish connection to the new cleaned db 
-//				Database cleanedDatabase = new Database("databases/cleaned.db");
-//				//make the database clean
-//				cleanedDatabase.cleanVips();
-////				database.cleanProtectedPlebs();
-//				cleanedDatabase.closeConnection();
 				System.out.println("---------FINISH---------");
 			}
 			

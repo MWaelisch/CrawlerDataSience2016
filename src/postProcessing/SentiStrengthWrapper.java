@@ -27,7 +27,7 @@ public class SentiStrengthWrapper {
 
     public void calculateSentiScore(String table) {
 
-        ArrayList<Tweet> tweets = database.getAllTweetsfromDB(table);
+        ArrayList<Tweet> tweets = database.getAllUnscoredTweetsfromDB(table);
         //calculate sentiScore for each tweet
         Integer[] sentiScore;
         for (Tweet t : tweets) {

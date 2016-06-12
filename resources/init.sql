@@ -40,7 +40,8 @@ CREATE TABLE "plebTweets"(
 	"text" Text NOT NULL,
 	"sentimentPos" Integer,
 	"sentimentNeg" Integer,
-	"authorId" Integer NOT NULL );
+	"authorId" Integer NOT NULL, 
+	CONSTRAINT "unique_idStr" UNIQUE ( "idStr" ));
 
 
 -- ------------------------------------------
@@ -102,7 +103,9 @@ CREATE TABLE "vipTweets"(
 	"inReplyTo" Integer,
 	"sentimentPos" Integer,
 	"sentimentNeg" Integer,
-CONSTRAINT "unique_ID" UNIQUE ( "id" ) );
+CONSTRAINT "unique_ID" UNIQUE ( "id" ),
+CONSTRAINT "unique_idStr" UNIQUE ( "idStr" )
+);
 
 CREATE INDEX "index4" ON "vipTweets"( "authorId" );
 
