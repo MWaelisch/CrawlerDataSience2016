@@ -231,7 +231,7 @@ public class Database {
 		try {
 			Statement statement = conn.createStatement();
 			ResultSet rs = statement.executeQuery("SELECT * FROM vip WHERE screenName = '" + screenName + "';");
-			// fkt??
+			
 			if (rs.next()) {
 				return rs.getLong("ID");
 			}
@@ -244,7 +244,7 @@ public class Database {
 
 	public void addPlebTweet(Tweet plebTweet, long vipId){
 		addPlebTweetData(plebTweet);
-		//falls tweet erfolgreich eingefügt wurde -> füge mentions in db ein
+		//falls tweet erfolgreich eingefuegt wurde -> fuege mentions in db ein
 		if(plebTweet.getGeneratedId() != 0){
 			for(long mention : plebTweet.getMentions()){
 				addPlebTweetMentions(plebTweet.getGeneratedId(), mention);
@@ -372,7 +372,6 @@ public class Database {
 		}
 	}
 	
-	
 	public boolean isVipInDb(String screenName) {
 		try {
 			Statement statement = conn.createStatement();
@@ -394,6 +393,9 @@ public class Database {
 		return false;
 	}
 
+	// id: id to search for
+	// idName: id, authorId, tweetId, ...
+	// db: table-name
 	public boolean isIdInDb(long id, String idName, String table) {
 		try {
 			Statement statement = conn.createStatement();
@@ -420,7 +422,6 @@ public class Database {
 			Statement statement = conn.createStatement();
 
 			ResultSet rs = statement.executeQuery( "SELECT COUNT(idStr) as count FROM "+ table +" WHERE idStr = '" + idStr + "';" );
-
 			rs.next();
 			int count = rs.getInt("count");
 			if(count > 0){
