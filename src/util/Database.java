@@ -3,7 +3,6 @@ package util;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -15,11 +14,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Properties;
 
 import model.*;
-import twitter4j.IDs;
 
 public class Database {
 	private Connection conn;
@@ -149,8 +145,6 @@ public class Database {
 					e.printStackTrace();
 				}
 			}
-		}else{
-			System.out.println("VipTweet " + vipTweet.getIdStr() + " is already in DB");
 		}
 	}
 
@@ -425,7 +419,7 @@ public class Database {
 			rs.next();
 			int count = rs.getInt("count");
 			if(count > 0){
-				System.out.println("Tweet" + idStr + " was in DB");
+				System.out.println("Tweet " + idStr + " was in DB");
 				return true;
 			}
 			
@@ -563,6 +557,30 @@ public class Database {
 			System.exit(0);
 		}
 		return vips;
+	}
+	
+	public Vip getVIPfromDB(String screenName) {
+		Vip vip = new Vip();
+		try {
+			Statement statement = conn.createStatement();
+			ResultSet rs = statement.executeQuery("SELECT * FROM vip WHERE screenName='"+ screenName +"';");
+
+			if (rs.next()) {
+				vip.setId(rs.getLong("id"));
+				vip.setScreenName(rs.getString("screenName"));
+				vip.setUserName(rs.getString("userName"));
+				vip.setFollowerCount(rs.getInt("followerCount"));
+				vip.setProfilePicture(rs.getString("profilePicture"));
+			}
+
+			statement.close();
+			return vip;
+			
+		} catch (Exception e) {
+			System.err.println(e.getClass().getName() + ": " + e.getMessage());
+			System.exit(0);
+		}
+		return vip;
 	}
 
     public ArrayList<Pleb> getAllPlebsfromDB(){

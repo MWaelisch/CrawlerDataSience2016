@@ -85,6 +85,7 @@ public class Twitter4jWrapper {
 				return vip;
 			}else{
 				System.out.println("VIP " + vipName + " is already in DB");
+				return database.getVIPfromDB(vipName);
 			}
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
