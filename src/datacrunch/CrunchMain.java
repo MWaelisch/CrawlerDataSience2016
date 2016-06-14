@@ -16,7 +16,7 @@ public class CrunchMain {
 
 		Database database;
 		try {
-			database = new Database("resources/hipHopData.db");
+			database = new Database("dbname");
 
 			// -------- VIPS --------
 			ArrayList<Vip> vips = database.getAllVIPsfromDB();
@@ -46,7 +46,7 @@ public class CrunchMain {
 			vipMatrix.calculatePlebFriendships();
 			vipMatrix.calculatePlebMentions();
 
-			vipMatrix.writeToCsv("dataCSV");
+			vipMatrix.writeToCsv("vipLio");
 
 			System.out.println("Finished");
 		} catch (ClassNotFoundException | SQLException | IOException e) {

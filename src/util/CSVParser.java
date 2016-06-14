@@ -27,12 +27,54 @@ public class CSVParser {
 		
 	}
 	
+	
+	
+	
 	/**
 	 * Parse the screen names out of a csv File
 	 * 
 	 * @return screenNames of the Vips
 	 */
-	public ArrayList<String> parseVips() {
+	public ArrayList<String> parseVips(){
+		ArrayList<String> names = new ArrayList<String>();
+		BufferedReader fileReader = null;
+		// Delimiter used in CSV file
+		final String DELIMITER = ";";
+		try {
+			String line = "";
+			if(config != null){
+				//path to csv from config
+				fileReader = new BufferedReader(new FileReader(config.getProperty("vipCsv")));
+			}else{
+				//path to csv from direct input 
+				fileReader = new BufferedReader(new FileReader(vipCsv));
+			}
+
+			while ((line = fileReader.readLine()) != null) {
+				String[] tokens = line.split(DELIMITER, 1);
+				String atName = tokens[0].trim();
+				System.out.println(atName);
+				atName = atName.substring(1,atName.length());
+				System.out.println(atName);
+				names.add(atName);
+			}
+
+			fileReader.close();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				fileReader.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return names;
+	}
+	
+	
+	public ArrayList<String> parseHipHopVips() {
 
 		ArrayList<String> names = new ArrayList<String>();
 		BufferedReader fileReader = null;

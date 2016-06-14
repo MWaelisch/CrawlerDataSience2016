@@ -37,8 +37,7 @@ public class Main {
 				CSVParser parser = new CSVParser(args[1]);
 				ArrayList<String> vipNames = parser.parseVips();
 				SentiStrengthWrapper sentiStrength = new SentiStrengthWrapper();
-				for(String vipName : vipNames){
-					
+				for(String vipName : vipNames){		
 					Vip vip = wrapper.crawlVip(vipName);
 					wrapper.crawlVipTweets(vip);
 					wrapper.searchTweets(vip);

@@ -289,7 +289,7 @@ public class Twitter4jWrapper {
 	            		   }
 	            	   }
 	               }
-	           } while ((query = result.nextQuery()) != null && count <= 200);
+	           } while ((query = result.nextQuery()) != null && count <= 100);
 	           System.out.println("Number of tweets: " + count);
 	       } catch (TwitterException te) {
 	            te.printStackTrace();
