@@ -594,7 +594,7 @@ public class Database {
             Statement tweetStatement = conn.createStatement();
 			Statement friendStatement = conn.createStatement();
 
-            ResultSet rsPleb = plebStatement.executeQuery("SELECT * FROM plebTweets LEFT JOIN plebFriends ON authorId = pleb WHERE friend IN (SELECT id FROM vip)" +
+            ResultSet rsPleb = plebStatement.executeQuery("SELECT * FROM plebTweets JOIN plebFriends ON authorId = pleb WHERE friend IN (SELECT id FROM vip)" +
             " ORDER BY authorId ASC;");
 
             while (rsPleb.next()) {
@@ -757,8 +757,7 @@ public class Database {
 			//auf den Tweet eines anderen Vip geantwortet wird, 
 			//ein anderer Vip retweetet wird
 			//oder ein anderer vip erwähnt wird
-			ResultSet rs = statement.executeQuery("SELECT * FROM vipTweets LEFT JOIN vipTweetMentions WHERE"
-					+ " authorId=" + authorId + " AND " + " (inReplyTo IN (SELECT id FROM vip)  OR mention IN (SELECT id FROM vip) OR retweetOrigin IN (SELECT id FROM vip));");
+			ResultSet rs = statement.executeQuery("SELECT * FROM vipTweets WHERE authorId=" + authorId + " AND (inReplyTo IN (SELECT id FROM vip) OR retweetOrigin IN (SELECT id FROM vip) OR id in (SELECT vipTweetId FROM vipTweetMentions WHERE mention IN(SELECT id FROM vip)));");
 			while (rs.next()) {
 				VipTweet t = new VipTweet();
 				t.setAuthorId(rs.getLong("authorId"));
@@ -813,7 +812,7 @@ public class Database {
 
 			long[] vipFriends = new long[count];
 
-			rs = statement.executeQuery("SELECT * as count FROM vipFriends WHERE vip=" + vipId +
+			rs = statement.executeQuery("SELECT * FROM vipFriends WHERE vip=" + vipId +
 					 " AND friend IN (SELECT id FROM vip)");
 
 			int i = 0;
