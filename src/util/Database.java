@@ -1,5 +1,10 @@
 package util;
 
+/*
+ * Query für retweetOrigin in PlebtweetMentions
+ * UPDATE plebTweetMentions SET retweetOrigin=1 WHERE EXISTS (SELECT * FROM plebTweets,vip WHERE plebTweetId =plebTweets.id AND mention = vip.id AND text like 'RT @' || screenName || '%')
+ * */
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;

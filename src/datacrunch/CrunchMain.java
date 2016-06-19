@@ -25,7 +25,7 @@ public class CrunchMain {
 			Map<Long, Integer> vipIdMap = new HashMap<>();
 			int count = 0;
 
-			// initialise Vips and Helpers
+//			// initialise Vips and Helpers
 			for (Vip vip : vips) {
 				vipIdMap.put(vip.getId(), count);
 			 	vip.setTweets(database.getVipTweets(vip.getId()));
