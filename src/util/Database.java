@@ -246,6 +246,7 @@ public class Database {
 		//falls tweet erfolgreich eingefuegt wurde -> fuege mentions in db ein
 		if(plebTweet.getGeneratedId() != 0){
 			for(long mention : plebTweet.getMentions()){
+				//TODO prüfe ob tweet mit RT @vipName beginnt. -> setze retweetOrigin auf 1
 				addPlebTweetMentions(plebTweet.getGeneratedId(), mention);
 			}
 			if(!isPlebMentionInDB(plebTweet.getGeneratedId(), vipId))
@@ -254,7 +255,6 @@ public class Database {
 			try {
 				throw new Exception("VIP Tweet database Insert returned 0");
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}

@@ -26,11 +26,11 @@ DROP TABLE IF EXISTS "plebTweetMentions";
 CREATE TABLE "plebTweetMentions"(
 	"mention" Integer NOT NULL,
 	"plebTweetId" Integer NOT NULL,
+	"retweetOrigin" Integer NOT NULL DEFAULT 0,
 	CONSTRAINT "plebTweetMentions_`plebTweets`_NO ACTION_NO ACTION_plebTweetId_id_0" FOREIGN KEY ( "plebTweetId" ) REFERENCES "`plebTweets`"( "id" )
 ,
 PRIMARY KEY ( "mention", "plebTweetId" ) );
 CREATE INDEX "index7" ON "plebTweetMentions"( "mention", "plebTweetId" );
-
 
 -- ------------------------------------------
 -- Dump of "plebTweets"
