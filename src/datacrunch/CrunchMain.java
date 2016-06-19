@@ -53,7 +53,6 @@ public class CrunchMain {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
 	}
 
 }

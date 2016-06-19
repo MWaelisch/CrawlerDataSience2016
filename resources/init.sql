@@ -12,6 +12,9 @@ CREATE TABLE "plebFriends"(
 	CONSTRAINT "lnk_plebFriends_plebTweets" FOREIGN KEY ( "pleb" ) REFERENCES "plebTweets"( "authorId" )
 ,
 PRIMARY KEY ( "pleb", "friend" ) );
+CREATE INDEX "index8" ON "plebFriends"( "pleb", "friend" );
+
+
 
 
 -- ------------------------------------------
@@ -26,6 +29,7 @@ CREATE TABLE "plebTweetMentions"(
 	CONSTRAINT "plebTweetMentions_`plebTweets`_NO ACTION_NO ACTION_plebTweetId_id_0" FOREIGN KEY ( "plebTweetId" ) REFERENCES "`plebTweets`"( "id" )
 ,
 PRIMARY KEY ( "mention", "plebTweetId" ) );
+CREATE INDEX "index7" ON "plebTweetMentions"( "mention", "plebTweetId" );
 
 
 -- ------------------------------------------
@@ -42,7 +46,8 @@ CREATE TABLE "plebTweets"(
 	"sentimentNeg" Integer,
 	"authorId" Integer NOT NULL, 
 	CONSTRAINT "unique_idStr" UNIQUE ( "idStr" ));
-
+CREATE INDEX "index5" ON "plebTweets"( "id" );
+CREATE INDEX "index6" ON "plebTweets"( "authorId" );
 
 -- ------------------------------------------
 -- Dump of "vip"
