@@ -16,7 +16,7 @@ public class CrunchMain {
 
 		Database database;
 		try {
-			database = new Database("dbname");
+			database = new Database("resources/hiphopData.db");
 
 			// -------- VIPS --------
 			ArrayList<Vip> vips = database.getAllVIPsfromDB();
@@ -28,7 +28,7 @@ public class CrunchMain {
 			// initialise Vips and Helpers
 			for (Vip vip : vips) {
 				vipIdMap.put(vip.getId(), count);
-				vip.setTweets(database.getVipTweets(vip.getId()));
+			 	vip.setTweets(database.getVipTweets(vip.getId()));
 				vip.setFriends(database.getVipFriends(vip.getId()));
 				count++;
 				System.out.println("Creating VIP no " + count);
