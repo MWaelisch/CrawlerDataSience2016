@@ -1,9 +1,10 @@
 package model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 
-public class Pleb {
+public class Pleb implements Serializable{
 
 	private long id;
 	private Long[] friends;

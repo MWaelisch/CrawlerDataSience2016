@@ -1,8 +1,10 @@
 package model;
 
+import java.io.Serializable;
+
 import static java.lang.Math.sqrt;
 
-public class Tweet {
+public class Tweet implements Serializable{
 
 	private long authorId;
 	private String screenName;
@@ -52,7 +54,7 @@ public class Tweet {
 		this.sentimentNeg = sentimentNeg;
 	}
 
-	public int getSentiment(){
+	public int getSentiment(){ //TODO make so that right sentiment is given depending on bff or beef map
 		if(sentimentPos > Math.abs(sentimentNeg)){
 			return sentimentPos*sentimentPos;
 		}else if (sentimentPos < Math.abs(sentimentNeg)){

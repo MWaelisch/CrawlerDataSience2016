@@ -619,7 +619,12 @@ public class Database {
                 //add mentions to tweet
                 mentionsList.clear();
                 while(rsMention.next()){
-                    mentionsList.add(rsMention.getLong("mention"));
+					//if mention is retweetOrigin save mention as negative
+                    if(rsMention.getInt("retweetOrigin") > 0) {
+						mentionsList.add(-rsMention.getLong("mention"));
+					}else {
+						mentionsList.add(rsMention.getLong("mention"));
+					}
                 }
                 Long[] mentionsArr = new Long[mentionsList.size()];
                 mentionsArr = mentionsList.toArray(mentionsArr);

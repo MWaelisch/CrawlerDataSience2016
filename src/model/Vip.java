@@ -1,10 +1,11 @@
 package model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 
 //todo make extends from Pleb
-public class Vip {
+public class Vip implements Serializable {
 	
 	private long id;
 	private String screenName;
