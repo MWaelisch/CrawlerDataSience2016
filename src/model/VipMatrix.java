@@ -36,14 +36,15 @@ public class VipMatrix {
     private float[][] vipReplyMatrix;
 
 
-    private int[][] vipRelationMatrix;
+    private float[][] vipRelationMatrix;
+    private float[][] plebRelationMatrix;
 
 
     public VipMatrix(ArrayList<Pleb> plebs,ArrayList<Vip> vips, Map<Long, Integer> vipIdMap){
         this.plebs = plebs;
         this.vips = vips;
         this.vipIdMap = vipIdMap;
-        vipRelationMatrix = new int[vips.size()][vips.size()];
+        vipRelationMatrix = new float[vips.size()][vips.size()];
         vipFriendsMatrix  = new float[vips.size()][vips.size()];
         vipMentionsMatrix = new float[vips.size()][vips.size()];
         vipRetweetMatrix = new float[vips.size()][vips.size()];
@@ -54,7 +55,6 @@ public class VipMatrix {
     public void calculateVipFriendships(){
         for(int i = 0; i < vips.size(); i++){
             long[] vipFriends = vips.get(i).getFriends();
-
             for(long friend : vipFriends){
                 if(vipIdMap.containsKey(friend)){
                     vipFriendsMatrix[i][vipIdMap.get(friend)] += FRIENDSHIPVALUE/(float) vipFriends.length;
@@ -75,6 +75,7 @@ public class VipMatrix {
 
             }
         }
+        System.out.println(Arrays.toString(vipFriendsMatrix[6]));
 
     }
     //check for each vipTweet if somebody is mentioned/replied/retweeted and apply Value multiplied with sentiment to Relationship
@@ -85,9 +86,9 @@ public class VipMatrix {
         for(int row = 0; row < vips.size(); row++){
 
             //initialise counter to sum up given mentions/retweets/replies of each VIP
-            mCount   = 0;
-            rtCount  = 0;
-            repCount = 0;
+            mCount   = 1;
+            rtCount  = 1;
+            repCount = 1;
 
             for(VipTweet tweet : vips.get(row).getTweets()){
 
@@ -178,21 +179,27 @@ public class VipMatrix {
     public void generateMatrix(float fWeight, float mWeight, float rtWeight, float respWeight){
         for(int row = 0; row < vips.size(); row++) {
             for (int col = 0; col < vips.size(); col++) {
-                vipRelationMatrix[row][col] = (int)
+                vipRelationMatrix[row][col] =
                         (
                                 (vipFriendsMatrix[row][col] * fWeight  +
                                 vipMentionsMatrix[row][col] * mWeight +
                                 vipRetweetMatrix[row][col] * rtWeight +
                                 vipReplyMatrix[row][col] * respWeight) //TODO check if this is working with 100
-                                //TODO eliminate magic number 100
                         );
+                        if(row < 6 && col < 3){
+                            System.out.print(vipFriendsMatrix[row][col] * fWeight+" | ");
+                            System.out.print(vipMentionsMatrix[row][col] * mWeight+" | ");
+                            System.out.print(vipRetweetMatrix[row][col] * rtWeight+" | ");
+                            System.out.println(vipReplyMatrix[row][col] * respWeight+" | ");
+
+                        }
 
             }
         }
     }
 
 
-    public int[][] getVipRelationMatrix() {
+    public float[][] getVipRelationMatrix() {
         return vipRelationMatrix;
     }
 

@@ -3,6 +3,7 @@ package datacrunch;
 import java.io.*;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -112,7 +113,9 @@ public class CrunchMain {
 //			vipMatrix.calculatePlebFriendships();
 //			vipMatrix.calculatePlebMentions();
             vipMatrix.generateMatrix(F_WEIGHT,M_WEIGHT,RT_WEIGHT,RESP_WEIGHT);
-
+//
+            System.out.println(vips.get(6).getScreenName());
+            System.out.println(Arrays.toString(vips.get(6).getFriends()));
 			vipMatrix.writeToCsv("normMatrix");
 
             System.out.println("Finished");
