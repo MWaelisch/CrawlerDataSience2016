@@ -56,7 +56,6 @@ public class Twitter4jWrapper {
 				int limit = status.getRemaining();
 				return limit;
 			} catch (TwitterException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			return 0;
@@ -88,7 +87,6 @@ public class Twitter4jWrapper {
 				return database.getVIPfromDB(vipName);
 			}
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;
@@ -231,7 +229,7 @@ public class Twitter4jWrapper {
 	 * Possible requests 180/ 15 min
 	 * 	                 450/ 15 min app-only
 	 * 
-	 * @param searchTweets //todo this is throwing an error in my IDE?
+	 * @param searchTweets
 	 * @return 
 	 */
 	private void searchTweet(String q, String screenName){
@@ -248,7 +246,6 @@ public class Twitter4jWrapper {
 							Thread.sleep(901000);
 							leftToCrawl = twitter.getRateLimitStatus().get("/search/tweets").getRemaining();
 		               } catch (InterruptedException e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 		               }
 	        	   }

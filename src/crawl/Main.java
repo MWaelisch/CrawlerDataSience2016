@@ -53,7 +53,6 @@ public class Main {
 			}
 			
 		} catch (SQLException | IOException | ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -64,7 +63,6 @@ public class Main {
 		try {
 			props.load(stream);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return props;

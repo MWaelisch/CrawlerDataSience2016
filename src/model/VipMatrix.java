@@ -192,7 +192,7 @@ public class VipMatrix {
                 for (long friend2 : friends) {
                     if (friend1 != friend2) {
                         plebFriendsMatrix[vipIdMap.get(friend1)][vipIdMap.get(friend2)] +=
-                                PLEBFRIENDVALUE / (float) ((friends.length > 0) ? friends.length : 1);
+                                PLEBFRIENDVALUE / (float) ((friends.length > 0) ? friends.length : 1); //TODO implement Pos/Neg
                     }
                 }
 

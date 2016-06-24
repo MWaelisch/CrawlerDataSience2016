@@ -13,7 +13,7 @@ public class Tweet implements Serializable{
 	private int generatedId;
 	private int sentimentPos;
 	private int sentimentNeg;
-	private Long[] mentions; //todo check if change long->Long had some negative effects in crawling
+	private Long[] mentions;
 
 	public Tweet(){}
 
@@ -77,7 +77,6 @@ public class Tweet implements Serializable{
 	}
 
 
-	//TODO can this be deleted ?
 	public String getScreenName() {
 		return screenName;
 	}

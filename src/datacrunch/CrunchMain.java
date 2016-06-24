@@ -117,7 +117,6 @@ public class CrunchMain {
 
             System.out.println("Finished");
         } catch (ClassNotFoundException | SQLException | IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
