@@ -110,12 +110,9 @@ public class CrunchMain {
 			VipMatrix vipMatrix = new VipMatrix(plebs, vips, vipIdMap);
 			vipMatrix.calculateVipFriendships();
 			vipMatrix.calculateVipMentions();
-//			vipMatrix.calculatePlebFriendships();
-//			vipMatrix.calculatePlebMentions();
+            vipMatrix.calculatePlebFriendships();
+			vipMatrix.calculatePlebMentions();
             vipMatrix.generateMatrix(F_WEIGHT,M_WEIGHT,RT_WEIGHT,RESP_WEIGHT);
-//
-            System.out.println(vips.get(6).getScreenName());
-            System.out.println(Arrays.toString(vips.get(6).getFriends()));
 			vipMatrix.writeToCsv("normMatrix");
 
             System.out.println("Finished");
