@@ -1,5 +1,10 @@
 package crawl;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -334,6 +339,75 @@ public class Twitter4jWrapper {
 			e.printStackTrace();
 		}
 
+	}
+	
+	public void crawlVipStatus(ArrayList<String> vipNames)
+ 	{
+ 		List<List<String>> parts = prepareVipLists(vipNames, 100);
+ 		
+ 		for(List<String> part : parts){
+ 			
+ 			String[] vipnamesArr = new String[part.size()];
+ 			vipnamesArr = part.toArray(vipnamesArr);
+ 			
+ 			System.out.println("Crawle Userdaten der Vips");
+ 			this.writeStatus(vipnamesArr);
+ 			
+ 		}
+ 		System.out.println("Finished");
+ 	}
+ 	
+ 	
+ 	public <T> List<List<T>> prepareVipLists(List<T> list, final int L) {
+ 	    List<List<T>> parts = new ArrayList<List<T>>();
+ 	    final int N = list.size();
+ 	    for (int i = 0; i < N; i += L) {
+ 	        parts.add(new ArrayList<T>(
+ 	            list.subList(i, Math.min(N, i + L)))
+ 	        );
+ 	    }
+ 	    return parts;
+ 	}
+ 	
+ 	public void writeStatus(String[] screenNames){
+ 		
+        try {
+		
+ 		File yourFile = new File("politiker_status.txt");
+ 		if(!yourFile.exists()) {
+ 		    yourFile.createNewFile();
+ 		} 
+ 		FileOutputStream oFile = new FileOutputStream(yourFile, false);
+ 		String content = "";
+            ResponseList<User> users = twitter.lookupUsers(screenNames);
+            for (User user : users) {
+                    System.out.println("@" + user.getScreenName());
+                    System.out.println("Status " + user.getStatus());
+                    System.out.println("");
+                    
+                    content += user.getScreenName() + "\n " + user.getStatus() + "\n\n";
+            } 
+            
+			// get the content in bytes
+			byte[] contentInBytes = content.getBytes();
+
+			oFile.write(contentInBytes);
+			oFile.flush();
+			oFile.close();
+
+			System.out.println("Done");
+            
+        } catch (TwitterException te) {
+            te.printStackTrace();
+            System.out.println("Failed to lookup users: " + te.getMessage());
+            System.exit(-1);
+        } catch (FileNotFoundException | UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 }

@@ -52,6 +52,13 @@ public class Main {
 				System.out.println("---------FINISH---------");
 			}
 			
+			if(args[0].equals("vipStatus")){
+				Twitter4jWrapper wrapper = new Twitter4jWrapper(config, null);
+				CSVParser parser = new CSVParser(args[1]);
+				ArrayList<String> vipNames = parser.parseVips();
+				wrapper.crawlVipStatus(vipNames);
+			}
+			
 		} catch (SQLException | IOException | ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
