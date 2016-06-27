@@ -27,7 +27,7 @@ public class CrunchMain {
         ArrayList<Pleb> plebs;
 
         try {
-            database = new Database("resources/hiphopData.db");
+            database = new Database("resources/hipHopData.db");
 
             // TODO make LOAD VIPS and LOAD PLEBS in extra class and maybe a bit nicer
             // ----------- LOAD VIPS -------------
@@ -48,7 +48,7 @@ public class CrunchMain {
                 //load from DB and write file
                 int count = 0;
                 vips = database.getAllVIPsfromDB();
-//				vips = database.getNVipsFromDB(20); //DEBUGGING HELPER
+//				vips = database.getNVipsFromDB(5); //DEBUGGING HELPER
 
                 // initialise Vips and Helpers
                 for (Vip vip : vips) {
@@ -62,18 +62,21 @@ public class CrunchMain {
 
                 System.out.println("Start writing to file at: " + vipFile.getCanonicalPath());
                 ObjectOutputStream vipOutputStream = new ObjectOutputStream(new FileOutputStream(vipFile));
-
+                System.out.println("WriteIDMap");
                 vipOutputStream.writeObject(vipIdMap);
+                System.out.println("write vips");
                 vipOutputStream.writeObject(vips);
-
+                System.out.println("flush");
                 vipOutputStream.flush();
+                System.out.println("close");
                 vipOutputStream.close();
 
             }
-
+            System.out.println("Vips Done");
 
 			// -------- LOAD PLEBS --------
             File plebFile = new File("resources/savedPlebs.txt");
+            System.out.println("plebfile done");
             if (plebFile.isFile() && plebFile.canRead()) {
                 //load from file
                 System.out.println("Start reading from file at: " + plebFile.getCanonicalPath());
@@ -85,6 +88,7 @@ public class CrunchMain {
 
                 plebInputStream.close();
             } else {
+                System.out.println("getting plebs from db");
                 //load from DB and write file
                 plebs = database.getAllPlebsfromDB();
 //			    plebs = database.getNPlebsfromDB(20); //DEBUGGING HELPER

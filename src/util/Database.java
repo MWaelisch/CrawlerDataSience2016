@@ -593,14 +593,15 @@ public class Database {
 
 			//Get all plebTweets where the author is friends with a vip
             ResultSet rsPleb = plebStatement.executeQuery("SELECT * FROM plebTweets JOIN plebFriends ON authorId = pleb WHERE friend IN (SELECT id FROM vip)" +
-            " GROUP BY id ORDER BY authorId ASC;");
-
-            while (rsPleb.next()) {
-                plebId = rsPleb.getLong("authorId");
+            " GROUP BY id ORDER BY authorId ASC;"); //TODO check is really slow!!
+			System.out.println("All Plebs from DB loaded");
+			while (rsPleb.next()) {
+				plebId = rsPleb.getLong("authorId");
 				ResultSet rsFriends = friendStatement.executeQuery("SELECT  * FROM plebFriends WHERE pleb = "+ plebId +" AND friend IN (SELECT id FROM vip);");
                 //check for all mentions in this tweet
                 tweetId = rsPleb.getInt("id");
                 ResultSet rsMention = tweetStatement.executeQuery("SELECT * FROM plebTweetMentions WHERE plebTweetId = " + tweetId + " AND mention IN (SELECT id FROM vip);");
+
 
                 //construct tweet
                 Tweet tweet = new Tweet();
@@ -641,7 +642,8 @@ public class Database {
 					pleb.setFriends(friendsArr);
                     plebMap.put(plebId,pleb);
                 }
-            }
+				System.out.println("Pleb created");
+			}
 
             plebStatement.close();
         } catch ( Exception e ) {
