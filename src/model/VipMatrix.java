@@ -12,6 +12,10 @@ import java.util.Map;
  */
 public class VipMatrix {
 
+
+
+    private boolean beef = false;
+
     private static float FRIENDSHIPVALUE = 150; //TODO make averages from all DB!
     private static float MENTIONVALUE = 5;
     private static float REPLYVALUE = 5;
@@ -56,6 +60,10 @@ public class VipMatrix {
         plebMentionsMatrix = new float[vips.size()][vips.size()];
     }
 
+    public void setBeef(boolean beef) {
+        this.beef = beef;
+    }
+
     //calculate RelationRow for a VIP and norm
     public void calculateVipFriendships() {
         for (int i = 0; i < vips.size(); i++) {
@@ -66,6 +74,17 @@ public class VipMatrix {
                 }
             }
         }
+
+        //TODO check if this is doing the right thing
+        if(beef){
+            for (int row = 0; row < vips.size(); row++) {
+                for (int col = 0; col < vips.size(); col++) {
+                    vipFriendsMatrix[row][col] = 1-vipFriendsMatrix[col][row];
+
+                }
+            }
+        }
+
 
         //TODO check if needed/if better results without
         //combine friend-Relations
@@ -80,7 +99,8 @@ public class VipMatrix {
 
             }
         }
-//        System.out.println(Arrays.toString(vipFriendsMatrix[6]));
+
+
 
     }
 
@@ -98,23 +118,25 @@ public class VipMatrix {
 
             for (VipTweet tweet : vips.get(row).getTweets()) {
 
+
+
                 //add mentions
                 for (long mention : tweet.getMentions()) {
                     if (vipIdMap.containsKey(mention)) {
-                        tempVal = MENTIONVALUE * (float) tweet.getSentimentPos();//TODO make generic for Pos/NEG
+                        tempVal = MENTIONVALUE * (float) tweet.getSentiment(beef);//TODO make generic for Pos/NEG
                         vipMentionsMatrix[row][vipIdMap.get(mention)] += tempVal;
                         mCount += tempVal;
                     }
                 }
                 //add RetweetValue
                 if (vipIdMap.containsKey(tweet.getRetweetOrigin())) {
-                    tempVal = RETWEETVALUE * (float) tweet.getSentimentPos();//TODO make generic for Pos/NEG
+                    tempVal = RETWEETVALUE * (float) tweet.getSentiment(beef);//TODO make generic for Pos/NEG
                     vipRetweetMatrix[row][vipIdMap.get(tweet.getRetweetOrigin())] += tempVal;
                     rtCount += tempVal;
                 }
                 //add ReplyValue
                 if (vipIdMap.containsKey(tweet.getInReplyTo())) {
-                    tempVal = REPLYVALUE * (float) tweet.getSentimentPos();//TODO make generic for Pos/NEG
+                    tempVal = REPLYVALUE * (float) tweet.getSentiment(beef);//TODO make generic for Pos/NEG
                     vipReplyMatrix[row][vipIdMap.get(tweet.getInReplyTo())] += tempVal;
                     repCount += tempVal;
                 }
@@ -157,7 +179,7 @@ public class VipMatrix {
 
                     for (long friend : pleb.getFriends()) {
                         if (vipIdMap.containsKey(mention) && vipIdMap.containsKey(friend) && mention != friend) {
-                            tempVal = PLEBMENTIONVALUE * tweetOrigin * (float) tweet.getSentimentPos(); //TODO implement Pos/Neg
+                            tempVal = PLEBMENTIONVALUE * tweetOrigin * (float) tweet.getSentiment(beef); //TODO implement Pos/Neg
 
                             //apply to friend and mention a tweetpoint
                             plebMentionsMatrix[vipIdMap.get(friend)][vipIdMap.get(mention)] += tempVal;
@@ -198,6 +220,16 @@ public class VipMatrix {
 
             }
         }
+
+        //TODO check if this is doing the right thing
+        if(beef){
+            for (int row = 0; row < vips.size(); row++) {
+                for (int col = 0; col < vips.size(); col++) {
+                    plebFriendsMatrix[row][col] = 1-plebFriendsMatrix[col][row];
+
+                }
+            }
+        }
     }
 
 
@@ -218,8 +250,15 @@ public class VipMatrix {
     }
 
     public void writeToCsv(String filename){
-        writeToCsvHelper("vip_"+filename,vipRelationMatrix);
-        writeToCsvHelper("pleb_"+filename,plebRelationMatrix);
+        String beefString;
+        if(beef){
+            beefString = "beef_";
+        }else{
+            beefString = "bff_";
+        }
+
+        writeToCsvHelper(beefString+"vip_"+filename,vipRelationMatrix);
+        writeToCsvHelper(beefString+"pleb_"+filename,plebRelationMatrix);
     }
 
 

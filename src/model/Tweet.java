@@ -54,13 +54,11 @@ public class Tweet implements Serializable{
 		this.sentimentNeg = sentimentNeg;
 	}
 
-	public int getSentiment(){ //TODO make so that right sentiment is given depending on bff or beef map
-		if(sentimentPos > Math.abs(sentimentNeg)){
-			return sentimentPos*sentimentPos;
-		}else if (sentimentPos < Math.abs(sentimentNeg)){
-			return -sentimentNeg*sentimentNeg;
+	public int getSentiment(boolean beef){ //TODO make so that right sentiment is given depending on bff or beef map
+		if(beef){
+			return sentimentNeg*sentimentNeg;
 		}else{
-			return 1;
+			return sentimentPos * sentimentPos;
 		}
 	}
 
